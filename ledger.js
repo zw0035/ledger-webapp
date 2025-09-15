@@ -8,31 +8,70 @@ async function hashPassword(pwd){
 let users = {};
 let currentUser = null;
 let records = [];
+let chart = null;
 
 // === 保存到 LocalStorage ===
 function saveLocal(){
   localStorage.setItem('ledger_users', JSON.stringify(users));
 }
 
-// === 注册 ===
-window.register = async function(){
+// === 渲染表格 ===
+function renderTable(){
+  const tbody = document.querySelector('#ledgerTable tbody');
+  tbody.innerHTML = '';
+  records.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.date}</td><td>${r.amount}</td><td>${r.category}</td><td>${r.note}</td>
+    <td><button class="deleteBtn" data-index="${i}">删除</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // 绑定删除事件
+  document.querySelectorAll('.deleteBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = parseInt(btn.dataset.index);
+      records.splice(i,1);
+      users[currentUser].records = records;
+      saveLocal();
+      renderTable();
+      renderChart();
+    });
+  });
+}
+
+// === 渲染图表 ===
+function renderChart(){
+  const ctx = document.getElementById('chart').getContext('2d');
+  const categories = {};
+  records.forEach(r=>{
+    categories[r.category] = (categories[r.category]||0) + r.amount;
+  });
+  const data = {
+    labels: Object.keys(categories),
+    datasets: [{ label:'支出统计', data:Object.values(categories), backgroundColor:['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF'] }]
+  };
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, { type:'pie', data });
+}
+
+// === 用户操作函数 ===
+async function register(){
   const u = document.getElementById('username').value.trim();
   const p = document.getElementById('password').value;
-  if(!u || !p){ document.getElementById('loginMsg').innerText="请输入用户名和密码"; return; }
+  if(!u||!p){ document.getElementById('loginMsg').innerText="请输入用户名和密码"; return; }
   if(users[u]){ document.getElementById('loginMsg').innerText="用户已存在"; return; }
   users[u] = { passwordHash: await hashPassword(p), records: [] };
   saveLocal();
   document.getElementById('loginMsg').innerText="注册成功，请登录";
 }
 
-// === 登录 ===
-window.login = async function(){
+async function login(){
   const u = document.getElementById('username').value.trim();
   const p = document.getElementById('password').value;
-  if(!u || !p){ document.getElementById('loginMsg').innerText="请输入用户名和密码"; return; }
+  if(!u||!p){ document.getElementById('loginMsg').innerText="请输入用户名和密码"; return; }
   if(!users[u]){ document.getElementById('loginMsg').innerText="用户不存在"; return; }
   const hash = await hashPassword(p);
-  if(hash !== users[u].passwordHash){ document.getElementById('loginMsg').innerText="密码错误"; return; }
+  if(hash!==users[u].passwordHash){ document.getElementById('loginMsg').innerText="密码错误"; return; }
 
   currentUser = u;
   records = users[u].records || [];
@@ -42,83 +81,33 @@ window.login = async function(){
   renderChart();
 }
 
-// === 登出 ===
-window.logout = function(){
+function logout(){
   if(currentUser) users[currentUser].records = records;
   saveLocal();
   currentUser = null;
   records = [];
   document.getElementById('login').style.display='block';
   document.getElementById('app').style.display='none';
-  document.getElementById('username').value=''; document.getElementById('password').value='';
+  document.getElementById('username').value='';
+  document.getElementById('password').value='';
 }
 
-// === 添加记录 ===
-document.getElementById('recordForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const r = {
-    date: document.getElementById('date').value,
-    amount: parseFloat(document.getElementById('amount').value),
-    category: document.getElementById('category').value,
-    note: document.getElementById('note').value
-  };
-  records.push(r);
-  users[currentUser].records = records;
-  saveLocal();
-  renderTable();
-  renderChart();
-  this.reset();
-
-  setTimeout(()=>{ alert("请点击“一键同步”按钮，将最新数据保存到 iCloud Drive"); }, 100);
-});
-
-// === 渲染表格 ===
-function renderTable(){
-  const tbody = document.querySelector('#ledgerTable tbody');
-  tbody.innerHTML = '';
-  records.forEach((r,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.date}</td><td>${r.amount}</td><td>${r.category}</td><td>${r.note}</td>
-    <td><button onclick="deleteRecord(${i})">删除</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-// === 删除记录 ===
-window.deleteRecord = function(i){
-  records.splice(i,1);
-  users[currentUser].records = records;
-  saveLocal();
-  renderTable();
-  renderChart();
-}
-
-// === 导出到 iCloud Drive ===
-window.exportData = function(){
+function exportData(){
   if(!currentUser){ alert("请先登录"); return; }
   const blob = new Blob([JSON.stringify({users,currentUser,records},null,2)],{type:"application/json"});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'ledger_data.json';
+  a.download='ledger_data.json';
   a.click();
   URL.revokeObjectURL(a.href);
-  alert("请保存到 iCloud Drive 以实现跨设备同步");
+  alert("请保存到 iCloud Drive");
 }
 
-// === 一键同步 ===
-window.syncToICloud = function(){
-  if(!currentUser){ alert("请先登录"); return; }
-  const blob = new Blob([JSON.stringify({users,currentUser,records},null,2)],{type:"application/json"});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'ledger_data.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  alert("已生成 JSON 文件，请保存到 iCloud Drive 以完成同步");
+function syncToICloud(){
+  exportData(); // 直接复用 exportData
 }
 
-// === 导入 JSON ===
-window.importData = function(e){
+function importData(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
@@ -137,31 +126,33 @@ window.importData = function(e){
   reader.readAsText(file);
 }
 
-// === 渲染图表 ===
-let chart = null;
-function renderChart(){
-  const ctx = document.getElementById('chart').getContext('2d');
-  const categories = {};
-  records.forEach(r=>{
-    categories[r.category] = (categories[r.category]||0) + r.amount;
+// === 添加记录表单事件 ===
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('registerBtn').addEventListener('click', register);
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('exportBtn').addEventListener('click', exportData);
+  document.getElementById('syncBtn').addEventListener('click', syncToICloud);
+  document.getElementById('importFile').addEventListener('change', importData);
+
+  document.getElementById('recordForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const r = {
+      date: document.getElementById('date').value,
+      amount: parseFloat(document.getElementById('amount').value),
+      category: document.getElementById('category').value,
+      note: document.getElementById('note').value
+    };
+    records.push(r);
+    users[currentUser].records = records;
+    saveLocal();
+    renderTable();
+    renderChart();
+    this.reset();
+    setTimeout(()=>{ alert("请点击“一键同步”按钮，将最新数据保存到 iCloud Drive"); }, 100);
   });
-  const data = {
-    labels: Object.keys(categories),
-    datasets: [{ label:'支出统计', data:Object.values(categories), backgroundColor:['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF'] }]
-  };
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, { type:'pie', data });
-}
 
-// === 自动保存提示 ===
-window.addEventListener('beforeunload',()=>{
-  if(currentUser) users[currentUser].records = records;
-  saveLocal();
-  if(records.length>0) alert("请确保导出 JSON 保存到 iCloud Drive，以保证跨设备同步");
-});
-
-// === 页面加载读取本地缓存 ===
-window.onload = function(){
+  // 读取本地缓存
   const localUsers = localStorage.getItem('ledger_users');
   if(localUsers) users = JSON.parse(localUsers);
-};
+});
