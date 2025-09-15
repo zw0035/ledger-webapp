@@ -2,22 +2,56 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>我的记账本</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iCloud 本地记账本</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: sans-serif; margin: 10px; }
+#login, #app { max-width: 600px; margin: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
+@media (max-width: 500px) { table { display: block; overflow-x: auto; } }
+</style>
 </head>
 <body>
-<h1>我的记账本</h1>
-<div id="app">正在加载功能模块...</div>
 
-<!-- 动态加载 ledger.js -->
-<script>
-fetch("https://zw0035.github.io/ledger-webapp/ledger.js")
-  .then(res => res.text())
-  .then(code => eval(code))
-  .catch(err => {
-    console.error("加载功能模块失败", err);
-    document.getElementById("app").innerText = "功能模块加载失败，请检查网络";
-  });
-</script>
+<div id="login">
+  <h2>登录 / 注册</h2>
+  <input id="username" placeholder="用户名"><br><br>
+  <input id="password" type="password" placeholder="密码"><br><br>
+  <button onclick="login()">登录</button>
+  <button onclick="register()">注册</button>
+  <div id="loginMsg" style="color:red;margin-top:10px;"></div>
+</div>
+
+<div id="app" style="display:none">
+  <h2>记账本</h2>
+  <form id="recordForm">
+    <input type="date" id="date" required>
+    <input type="number" id="amount" placeholder="金额" required>
+    <input type="text" id="category" placeholder="类别" required>
+    <input type="text" id="note" placeholder="备注">
+    <button type="submit">添加</button>
+  </form>
+
+  <table id="ledgerTable">
+    <thead>
+      <tr><th>日期</th><th>金额</th><th>类别</th><th>备注</th><th>操作</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <br>
+  <button onclick="exportData()">导出到 iCloud Drive</button>
+  <button onclick="syncToICloud()">一键同步</button>
+  <input type="file" id="importFile" onchange="importData(event)">
+  <button onclick="logout()">登出</button>
+
+  <canvas id="chart" style="max-width:100%;height:300px;margin-top:20px;"></canvas>
+</div>
+
+<script src="ledger-icloud.js"></script>
 </body>
 </html>
+
 
