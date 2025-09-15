@@ -20,8 +20,8 @@ button { margin: 2px; }
   <h2>登录 / 注册</h2>
   <input id="username" placeholder="用户名"><br><br>
   <input id="password" type="password" placeholder="密码"><br><br>
-  <button onclick="login()">登录</button>
-  <button onclick="register()">注册</button>
+  <button id="loginBtn">登录</button>
+  <button id="registerBtn">注册</button>
   <div id="loginMsg" style="color:red;margin-top:10px;"></div>
 </div>
 
@@ -43,10 +43,10 @@ button { margin: 2px; }
   </table>
 
   <br>
-  <button onclick="exportData()">导出到 iCloud Drive</button>
-  <button onclick="syncToICloud()">一键同步</button>
-  <input type="file" id="importFile" onchange="importData(event)">
-  <button onclick="logout()">登出</button>
+  <button id="exportBtn">导出到 iCloud Drive</button>
+  <button id="syncBtn">一键同步</button>
+  <input type="file" id="importFile">
+  <button id="logoutBtn">登出</button>
 
   <canvas id="chart" style="max-width:100%;height:300px;margin-top:20px;"></canvas>
 </div>
