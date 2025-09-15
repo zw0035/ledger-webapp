@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>我的记账本</title>
+</head>
+<body>
+<h1>我的记账本</h1>
+<div id="app">正在加载功能模块...</div>
+
+<!-- 动态加载 ledger.js -->
+<script>
+fetch("https://zw0035.github.io/ledger-webapp/ledger.js")
+  .then(res => res.text())
+  .then(code => eval(code))
+  .catch(err => {
+    console.error("加载功能模块失败", err);
+    document.getElementById("app").innerText = "功能模块加载失败，请检查网络";
+  });
+</script>
+</body>
+</html>
+
