@@ -1,4 +1,4 @@
-/* style.css - Google Material Design 风格 */
+/* style.css - Google Material Design 风格（响应式） */
 
 /* ====== 基础变量和字体 ====== */
 :root {
@@ -196,19 +196,29 @@ body {
 /* ====== Tab 导航栏 ====== */
 .tab-bar {
     display: flex;
+    justify-content: space-around;
     border-bottom: 1px solid var(--color-border);
     margin-bottom: 24px;
+    padding-top: 8px;
 }
 .tab-item {
-    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px;
     border: none;
     background-color: transparent;
     color: var(--color-text-light);
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     position: relative;
     transition: color 0.3s;
+    flex: 1;
+}
+.tab-item .material-icons {
+    font-size: 24px;
+    margin-bottom: 4px;
 }
 .tab-item.active {
     color: var(--color-primary);
@@ -291,6 +301,9 @@ tbody tr:hover {
     font-weight: 500;
     padding: 4px 8px;
 }
+.delete-btn .material-icons {
+    font-size: 20px;
+}
 
 /* ====== 提示和消息 ====== */
 .message-box {
@@ -343,4 +356,53 @@ tbody tr:hover {
     background-color: var(--color-card-bg);
     border-radius: 8px;
     box-shadow: var(--shadow-sm);
+}
+
+/* ====== 手机端响应式布局 ====== */
+@media (max-width: 600px) {
+    body {
+        padding: 16px;
+    }
+    .card-pane {
+        padding: 24px 16px;
+    }
+    .card-title {
+        font-size: 20px;
+    }
+    .section-title {
+        font-size: 18px;
+    }
+
+    .tab-item .tab-text {
+        display: none;
+    }
+
+    .bottom-actions {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    .btn.btn-text {
+        width: 100%;
+        text-align: center;
+    }
+    .file-input {
+        width: 100%;
+    }
+
+    /* 隐藏表格部分列 */
+    .desktop-only {
+        display: none;
+    }
+    
+    /* 手机端表格按钮优化 */
+    .delete-btn {
+        font-size: 0; /* 隐藏文字 */
+        padding: 4px;
+    }
+    .delete-btn::before {
+        content: "删除";
+        font-size: 14px;
+        color: var(--color-danger);
+    }
 }
