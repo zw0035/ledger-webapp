@@ -1,5 +1,22 @@
 // ledger-icloud.js — 升级版（动画、二次确认删除、iCloud 导入/导出、同步码）
 
+// ====== 设备检测 ======
+function detectDevice() {
+  const body = document.body;
+  const ua = navigator.userAgent;
+  const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
+  if (isMobile) {
+    body.classList.add('mobile');
+    body.classList.remove('desktop');
+  } else {
+    body.classList.add('desktop');
+    body.classList.remove('mobile');
+  }
+}
+// 页面加载时立即检测
+document.addEventListener('DOMContentLoaded', detectDevice);
+
+
 // ====== 工具函数 ======
 function $id(id){ return document.getElementById(id); }
 function sleep(ms){ return new Promise(resolve=>setTimeout(resolve, ms)); }
