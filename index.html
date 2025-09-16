@@ -1,100 +1,86 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>iCloud 本地记账本</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>iCloud 本地记账本</title>
 
-  <!-- 加载外部样式 -->
-  <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css" />
 
-  <!-- Chart.js 图表库 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body class="">
-  <!-- 登录模块 -->
-  <div id="login" class="desktop mobile">
-    <h2>登录 / 注册</h2>
-    <input id="username" type="text" placeholder="用户名" autocomplete="username" />
-    <input id="password" type="password" placeholder="密码" autocomplete="current-password" />
-    <div>
-      <button id="loginBtn">登录</button>
-      <button id="registerBtn">注册</button>
-    </div>
-    <div id="loginMsg"></div>
-  </div>
-<div id="app" class="desktop-view mobile-view" style="display:none">
-  <!-- 主界面内容保持不变 -->
-</div>
-  
-  <!-- 主应用模块 -->
-  <div id="app" class="desktop mobile" style="display:none">
-    <!-- 小的 Tab 导航 -->
-    <nav class="mini-tabs" aria-label="主功能">
-      <button class="tab active" data-show="ledger">记账</button>
-      <button class="tab" data-show="stats">统计</button>
-      <button class="tab" data-show="profile">用户资料</button>
-    </nav>
+    <div id="login-pane" class="card">
+    <h2>登录 / 注册</h2>
+    <input id="username" type="text" placeholder="用户名" autocomplete="username" />
+    <input id="password" type="password" placeholder="密码" autocomplete="current-password" />
+    <div>
+      <button id="loginBtn">登录</button>
+      <button id="registerBtn">注册</button>
+    </div>
+    <div id="loginMsg"></div>
+  </div>
 
-    <h2>记账本</h2>
+    <div id="app-pane" class="card" style="display:none">
+        <nav class="mini-tabs" aria-label="主功能">
+      <button class="tab active" data-tab-name="ledger">记账</button>
+      <button class="tab" data-tab-name="stats">统计</button>
+      <button class="tab" data-tab-name="profile">用户资料</button>
+    </nav>
 
-    <!-- 原有表单 -->
-    <form id="recordForm">
-      <input type="date" id="date" required />
-      <input type="number" id="amount" placeholder="金额" step="0.01" required />
-      <input type="text" id="category" placeholder="类别" required />
-      <input type="text" id="note" placeholder="备注" />
-      <button type="submit">添加</button>
-    </form>
+    <div class="tab-content" id="ledger-tab-content">
+      <h2>记账本</h2>
+            <form id="recordForm">
+        <input type="date" id="date" required />
+        <input type="number" id="amount" placeholder="金额" step="0.01" required />
+        <input type="text" id="category" placeholder="类别" required />
+        <input type="text" id="note" placeholder="备注" />
+        <button type="submit">添加</button>
+      </form>
+      <table id="ledgerTable">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>金额</th>
+            <th>类别</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-    <table id="ledgerTable">
-      <thead>
-        <tr>
-          <th>日期</th>
-          <th>金额</th>
-          <th>类别</th>
-          <th>备注</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <div class="controls-row">
+        <button id="exportBtn">导出备份</button>
+        <input type="file" id="importFile" />
+        <button id="logoutBtn" style="background-color: #ff3b30;">登出</button>
+      </div>
+    </div>
 
-    <div class="controls-row">
-      <button id="exportBtn">导出到 iCloud Drive</button>
-      <button id="syncBtn">一键同步</button>
-      <input type="file" id="importFile" />
-      <button id="logoutBtn" style="background-color: #ff3b30;">登出</button>
-    </div>
+        <div class="tab-content" id="stats-tab-content" style="display:none;">
+      <h2>支出统计</h2>
+      <canvas id="chart"></canvas>
+    </div>
 
-    <!-- 统计面板 -->
-    <div id="statsPane" class="tabPane" style="display:none; margin-top:18px;">
-      <h2>支出统计</h2>
-      <canvas id="chart"></canvas>
-    </div>
+        <div class="tab-content" id="profile-tab-content" style="display:none;">
+      <h2>用户资料</h2>
+      <p><strong>用户名：</strong><span id="profileUsername"></span></p>
+      <p><strong>记录数：</strong><span id="profileCount"></span></p>
 
-    <!-- 用户资料面板 -->
-    <div id="profilePane" class="tabPane" style="display:none; margin-top:18px;">
-      <h2>用户资料</h2>
-      <p><strong>用户名：</strong><span id="profileUsername"></span></p>
-      <p><strong>记录数：</strong><span id="profileCount"></span></p>
+      <div style="margin-top:12px;">
+        <button id="copySyncBtn">复制同步码</button>
+        <button id="pasteSyncBtn">粘贴同步码并导入</button>
+        <button id="exportUserBtn">导出当前账户 JSON</button>
+        <input type="file" id="importUserFile" style="display:none" />
+        <button id="importUserBtn">从文件导入</button>
+        <button id="deleteAccountBtn" style="background:#ff3b30; color:#fff; margin-left:8px;">删除当前账户</button>
+      </div>
 
-      <div style="margin-top:12px;">
-        <button id="copySyncBtn">复制同步码（复制到剪贴板）</button>
-        <button id="pasteSyncBtn">粘贴同步码并导入</button>
-        <button id="exportUserBtn">导出当前账户 JSON</button>
-        <input type="file" id="importUserFile" style="display:none" />
-        <button id="importUserBtn">从文件导入</button>
-        <button id="deleteAccountBtn" style="background:#ff3b30; color:#fff; margin-left:8px;">删除当前账户</button>
-      </div>
-
-      <p class="muted" style="margin-top:12px;">
-        同步说明：你可以导出 JSON 并保存到 iCloud Drive，或在电脑上复制“同步码”并粘贴到手机来导入单个账户的数据。
-      </p>
-    </div>
-  </div>
-
-  <!-- 加载 JS -->
-  <script src="ledger-icloud.js" defer></script>
+      <p class="muted" style="margin-top:12px;">
+        导出备份文件或复制同步码，可将数据保存到其他设备。
+      </p>
+    </div>
+  </div>
+    <script src="ledger-icloud.js" defer></script>
 </body>
 </html>
