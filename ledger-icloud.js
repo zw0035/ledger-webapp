@@ -1,4 +1,4 @@
-// ledger-icloud.js — 最终修复版，适配全新UI
+// ledger-icloud.js — 最终修复版，全面适配移动端
 // 修复了Tab切换问题，确保所有功能正常工作
 
 // ====== 工具函数 ======
@@ -112,9 +112,9 @@ const App = {
             <tr>
                 <td>${r.date}</td>
                 <td>${r.amount}</td>
-                <td>${r.category}</td>
-                <td>${r.note}</td>
-                <td><button class="delete-btn" data-index="${this.state.records.indexOf(r)}">删除</button></td>
+                <td class="desktop-only">${r.category}</td>
+                <td class="desktop-only">${r.note}</td>
+                <td><button class="delete-btn" data-index="${this.state.records.indexOf(r)}"><span class="material-icons">delete</span></button></td>
             </tr>
         `
             )
