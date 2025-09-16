@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google 风格记账本</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+</head>
+<body class="material-theme">
+    <div class="app-container">
+        <div id="login-pane" class="card-pane">
+            <h1 class="card-title">登录 / 注册</h1>
+            <form id="loginForm">
+                <div class="input-container">
+                    <input
+                        id="username"
+                        type="text"
+                        placeholder=" "
+                        autocomplete="username"
+                    />
+                    <label for="username">用户名</label>
+                </div>
+                <div class="input-container">
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder=" "
+                        autocomplete="current-password"
+                    />
+                    <label for="password">密码</label>
+                </div>
+                <div class="button-group">
+                    <button id="loginBtn" class="btn btn-primary" type="button"><span>登录</span></button>
+                    <button id="registerBtn" class="btn btn-secondary" type="button"><span>注册</span></button>
+                </div>
+                <div id="loginMsg" class="message-box"></div>
+            </form>
+        </div>
+
+        <div id="app-pane" class="card-pane" style="display:none">
+            <nav class="tab-bar">
+                <button class="tab-item active" data-tab-name="ledger">
+                    <span class="material-icons">list</span>
+                    <span class="tab-text">记账</span>
+                </button>
+                <button class="tab-item" data-tab-name="stats">
+                    <span class="material-icons">insights</span>
+                    <span class="tab-text">统计</span>
+                </button>
+                <button class="tab-item" data-tab-name="profile">
+                    <span class="material-icons">person</span>
+                    <span class="tab-text">资料</span>
+                </button>
+            </nav>
+
+            <div class="tab-content" id="ledger-tab-content">
+                <h2 class="section-title">记账本</h2>
+                <form id="recordForm" class="form-container">
+                    <div class="input-grid">
+                        <div class="input-container">
+                            <input type="date" id="date" required />
+                            <label for="date">日期</label>
+                        </div>
+                        <div class="input-container">
+                            <input
+                                type="number"
+                                id="amount"
+                                placeholder=" "
+                                step="0.01"
+                                required
+                            />
+                            <label for="amount">金额</label>
+                        </div>
+                        <div class="input-container">
+                            <input
+                                type="text"
+                                id="category"
+                                placeholder=" "
+                                required
+                            />
+                            <label for="category">类别</label>
+                        </div>
+                        <div class="input-container">
+                            <input type="text" id="note" placeholder=" " />
+                            <label for="note">备注</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-action"><span>添加记录</span></button>
+                </form>
+
+                <div class="table-container">
+                    <table id="ledgerTable">
+                        <thead>
+                            <tr>
+                                <th data-sort-by="date" class="sortable">日期</th>
+                                <th data-sort-by="amount" class="sortable">金额</th>
+                                <th class="mobile-only">类别</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="panel-actions bottom-actions">
+                    <button id="exportBtn" class="btn btn-text mobile-full-width">导出</button>
+                    <input type="file" id="importFile" class="file-input" />
+                    <button id="logoutBtn" class="btn btn-text btn-danger mobile-full-width">登出</button>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="stats-tab-content">
+                <h2 class="section-title">支出统计</h2>
+                <div class="chart-container">
+                    <canvas id="chart"></canvas>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="profile-tab-content">
+                <h2 class="section-title">用户资料</h2>
+                <div class="profile-info">
+                    <p><strong>用户名:</strong> <span id="profileUsername"></span></p>
+                    <p><strong>记录数:</strong> <span id="profileCount"></span></p>
+                </div>
+
+                <div class="panel-actions">
+                    <button id="copySyncBtn" class="btn btn-text mobile-full-width">复制同步码</button>
+                    <button id="pasteSyncBtn" class="btn btn-text mobile-full-width">粘贴同步码</button>
+                    <button id="exportUserBtn" class="btn btn-text mobile-full-width">导出账户</button>
+                    <input type="file" id="importUserFile" class="file-input" />
+                    <button id="importUserBtn" class="btn btn-text mobile-full-width">文件导入</button>
+                    <button id="deleteAccountBtn" class="btn btn-text btn-danger mobile-full-width">删除账户</button>
+                </div>
+                <p class="note-text">
+                    导出备份文件或复制同步码，可将数据保存到其他设备。
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="ledger-icloud.js" defer></script>
+</body>
+</html>
