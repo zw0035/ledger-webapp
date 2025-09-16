@@ -1,5 +1,5 @@
-// ledger-icloud.js — 最终修复版，全面适配移动端
-// 修复了Tab切换问题，确保所有功能正常工作
+// ledger.js
+// 这是核心功能文件，电脑和手机版共用这个文件
 
 // ====== 工具函数 ======
 const $id = (id) => document.getElementById(id);
@@ -108,24 +108,15 @@ const App = {
 
         tbody.innerHTML = sortedRecords
             .map(
-                (r, i) => {
-                    // 判断是否为手机页面以调整按钮和表格内容
-                    const isMobile = window.location.pathname.endsWith('index_mobile.html');
-                    const categoryCell = isMobile ? `<td class="mobile-only">${r.category}</td>` : `<td>${r.category}</td>`;
-                    const noteCell = isMobile ? '' : `<td>${r.note}</td>`;
-                    const deleteBtnContent = isMobile ? `<span class="material-icons">delete</span>` : '删除';
-                    const deleteBtnClass = 'delete-btn';
-    
-                    return `
-                        <tr>
-                            <td>${r.date}</td>
-                            <td>${r.amount}</td>
-                            ${categoryCell}
-                            ${noteCell}
-                            <td><button class="${deleteBtnClass}" data-index="${this.state.records.indexOf(r)}">${deleteBtnContent}</button></td>
-                        </tr>
-                    `;
-                }
+                (r, i) => `
+                <tr>
+                    <td>${r.date}</td>
+                    <td>${r.amount}</td>
+                    <td>${r.category}</td>
+                    <td>${r.note}</td>
+                    <td><button class="delete-btn" data-index="${this.state.records.indexOf(r)}">删除</button></td>
+                </tr>
+            `
             )
             .join("");
     },
@@ -192,7 +183,7 @@ const App = {
     showPane(paneId) {
         $id(this.constants.ELEM_ID.loginPane).style.display = "none";
         $id(this.constants.ELEM_ID.appPane).style.display = "none";
-        $id(paneId).style.display = "flex";
+        $id(paneId).style.display = "block";
     },
 
     switchToTab(tabName) {
@@ -556,7 +547,6 @@ const App = {
                 $id(this.constants.ELEM_ID.username).value = names[0];
             } catch (e) {}
         }
-        this.renderTable();
     },
 };
 
