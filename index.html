@@ -1,62 +1,131 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>iCloud 本地记账本</title>
-
-  <!-- 加载外部样式 -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>iCloud 本地记账本 — 升级版</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Chart.js 图表库 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="ledger-icloud.js" defer></script>
 </head>
 <body>
-  <div id="login">
-    <h2>登录 / 注册</h2>
-    <input id="username" type="text" placeholder="用户名" autocomplete="username" />
-    <input id="password" type="password" placeholder="密码" autocomplete="current-password" />
-    <div>
-      <button id="loginBtn">登录</button>
-      <button id="registerBtn">注册</button>
-    </div>
-    <div id="loginMsg"></div>
+  <div class="page">
+    <!-- 登录区 -->
+    <main id="panel-login" class="card center-card">
+      <h1 class="brand">记账小筑</h1>
+      <p class="muted">请登录或注册 — 数据保存在你的设备 / iCloud（由你控制）</p>
+
+      <div class="field"><input id="username" placeholder="用户名" autocomplete="username"></div>
+      <div class="field"><input id="password" type="password" placeholder="密码" autocomplete="current-password"></div>
+
+      <div class="row gap">
+        <button id="loginBtn" class="btn primary">登录</button>
+        <button id="registerBtn" class="btn outline">注册</button>
+      </div>
+
+      <div id="loginMsg" class="msg"></div>
+
+      <footer class="small muted">可导出/导入数据以实现跨设备同步（见「我的」页）</footer>
+    </main>
+
+    <!-- 主应用区（Tabs） -->
+    <main id="panel-app" class="app-root" style="display:none">
+      <nav class="topbar">
+        <div class="brand-small">记账小筑</div>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="ledger">记账</button>
+          <button class="tab" data-tab="stats">统计</button>
+          <button class="tab" data-tab="profile">我的</button>
+        </div>
+        <div class="user-area">
+          <span id="currentUserLabel"></span>
+          <button id="logoutBtn" class="btn danger small">登出</button>
+        </div>
+      </nav>
+
+      <section class="container">
+
+        <!-- 记账（默认） -->
+        <section id="tab-ledger" class="tab-panel active">
+          <div class="card grid-2">
+            <div>
+              <h2>新增流水</h2>
+              <form id="recordForm" class="form">
+                <label>日期 <input type="date" id="date" required></label>
+                <label>金额 <input type="number" id="amount" step="0.01" required></label>
+                <label>类别 <input type="text" id="category" placeholder="例如 餐饮/交通/收入" required></label>
+                <label>备注 <input type="text" id="note" placeholder="可选"></label>
+                <div class="row">
+                  <button type="submit" class="btn primary">添加</button>
+                  <button type="button" id="syncQuickBtn" class="btn outline">一键同步 (生成 JSON)</button>
+                </div>
+              </form>
+            </div>
+
+            <div>
+              <h2>本月概览</h2>
+              <div id="summaryCards" class="cards-row">
+                <div class="stat-card">收入<br><span id="totalIncome">0</span></div>
+                <div class="stat-card">支出<br><span id="totalExpense">0</span></div>
+                <div class="stat-card">结余<br><span id="balance">0</span></div>
+              </div>
+              <h3 style="margin-top:18px">流水记录</h3>
+              <div class="table-wrap">
+                <table id="ledgerTable">
+                  <thead><tr><th>日期</th><th>类别</th><th>金额</th><th>备注</th><th>操作</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 统计 -->
+        <section id="tab-stats" class="tab-panel">
+          <div class="card">
+            <h2>支出分类（饼图）</h2>
+            <canvas id="expenseChart"></canvas>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h2>每月收支趋势</h2>
+            <canvas id="trendChart"></canvas>
+          </div>
+        </section>
+
+        <!-- 用户资料, 同步入口 -->
+        <section id="tab-profile" class="tab-panel">
+          <div class="card">
+            <h2>我的资料</h2>
+            <p><strong>用户名：</strong><span id="profileUsername"></span></p>
+            <p class="muted">数据保存在浏览器本地。如果你要在其他设备使用，请选择下面一种同步方式：</p>
+
+            <div class="row gap" style="margin-top:12px">
+              <button id="exportBtn" class="btn primary">导出 JSON（下载）</button>
+              <input id="importFile" type="file" accept=".json" style="display:none" />
+              <button id="importBtn" class="btn outline">从文件导入</button>
+              <button id="copySyncBtn" class="btn">复制同步码</button>
+              <button id="pasteSyncBtn" class="btn">粘贴同步码并导入</button>
+            </div>
+
+            <div style="margin-top:12px">
+              <label class="muted small">同步码说明（安全）：它只是把你本地用户数据做了 base64 编码。复制并在目标设备粘贴即可导入。</label>
+            </div>
+
+            <hr style="margin:18px 0" />
+
+            <div>
+              <h3>账号操作</h3>
+              <button id="deleteAccountBtn" class="btn danger">删除当前账户（无法恢复）</button>
+            </div>
+          </div>
+        </section>
+
+      </section>
+    </main>
   </div>
 
-  <div id="app" style="display:none">
-    <h2>记账本</h2>
-    <form id="recordForm">
-      <input type="date" id="date" required />
-      <input type="number" id="amount" placeholder="金额" step="0.01" required />
-      <input type="text" id="category" placeholder="类别" required />
-      <input type="text" id="note" placeholder="备注" />
-      <button type="submit">添加</button>
-    </form>
+  <!-- 小提示/Modal 容器 -->
+  <div id="toast" class="toast" style="display:none"></div>
 
-    <table id="ledgerTable">
-      <thead>
-        <tr>
-          <th>日期</th>
-          <th>金额</th>
-          <th>类别</th>
-          <th>备注</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div style="margin-top: 20px;">
-      <button id="exportBtn">导出到 iCloud Drive</button>
-      <button id="syncBtn">一键同步</button>
-      <input type="file" id="importFile" style="margin-left: 10px;" />
-      <button id="logoutBtn" style="float: right; background-color: #ff3b30;">登出</button>
-    </div>
-
-    <canvas id="chart"></canvas>
-  </div>
-
-  <!-- 加载外部逻辑 -->
-  <script src="ledger-icloud.js"></script>
 </body>
 </html>
