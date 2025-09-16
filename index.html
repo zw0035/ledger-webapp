@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google 风格记账本</title>
+</head>
+<body>
+<script>
+    // 检测用户代理字符串，判断是否为移动设备
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    // 根据设备类型加载不同的页面
+    if (isMobileDevice()) {
+        window.location.href = "index_mobile.html";
+    } else {
+        window.location.href = "index_desktop.html";
+    }
+</script>
+</body>
+</html>
