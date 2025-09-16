@@ -12,6 +12,11 @@
         rel="stylesheet"
     />
 
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+
     <link rel="stylesheet" href="style.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -49,9 +54,18 @@
 
         <div id="app-pane" class="card-pane" style="display:none">
             <nav class="tab-bar">
-                <button class="tab-item active" data-tab-name="ledger">记账</button>
-                <button class="tab-item" data-tab-name="stats">统计</button>
-                <button class="tab-item" data-tab-name="profile">用户资料</button>
+                <button class="tab-item active" data-tab-name="ledger">
+                    <span class="material-icons">list</span>
+                    <span class="tab-text">记账</span>
+                </button>
+                <button class="tab-item" data-tab-name="stats">
+                    <span class="material-icons">insights</span>
+                    <span class="tab-text">统计</span>
+                </button>
+                <button class="tab-item" data-tab-name="profile">
+                    <span class="material-icons">person</span>
+                    <span class="tab-text">资料</span>
+                </button>
             </nav>
 
             <div class="tab-content" id="ledger-tab-content">
@@ -95,8 +109,8 @@
                             <tr>
                                 <th data-sort-by="date" class="sortable">日期</th>
                                 <th data-sort-by="amount" class="sortable">金额</th>
-                                <th>类别</th>
-                                <th>备注</th>
+                                <th class="desktop-only">类别</th>
+                                <th class="desktop-only">备注</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
@@ -105,7 +119,7 @@
                 </div>
 
                 <div class="panel-actions bottom-actions">
-                    <button id="exportBtn" class="btn btn-text">导出备份</button>
+                    <button id="exportBtn" class="btn btn-text">导出</button>
                     <input type="file" id="importFile" class="file-input" />
                     <button id="logoutBtn" class="btn btn-text btn-danger">登出</button>
                 </div>
@@ -126,12 +140,12 @@
                 </div>
 
                 <div class="panel-actions">
-                    <button id="copySyncBtn" class="btn btn-text">复制同步码</button>
-                    <button id="pasteSyncBtn" class="btn btn-text">粘贴同步码</button>
-                    <button id="exportUserBtn" class="btn btn-text">导出账户</button>
+                    <button id="copySyncBtn" class="btn btn-text mobile-full-width">复制同步码</button>
+                    <button id="pasteSyncBtn" class="btn btn-text mobile-full-width">粘贴同步码</button>
+                    <button id="exportUserBtn" class="btn btn-text mobile-full-width">导出账户</button>
                     <input type="file" id="importUserFile" class="file-input" />
-                    <button id="importUserBtn" class="btn btn-text">文件导入</button>
-                    <button id="deleteAccountBtn" class="btn btn-text btn-danger">删除账户</button>
+                    <button id="importUserBtn" class="btn btn-text mobile-full-width">文件导入</button>
+                    <button id="deleteAccountBtn" class="btn btn-text btn-danger mobile-full-width">删除账户</button>
                 </div>
                 <p class="note-text">
                     导出备份文件或复制同步码，可将数据保存到其他设备。
