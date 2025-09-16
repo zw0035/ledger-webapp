@@ -8,7 +8,7 @@
   <!-- 加载外部样式 -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Chart.js 图表库（defer 保证在 DOM 解析后执行） -->
+  <!-- Chart.js 图表库 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
@@ -24,16 +24,15 @@
   </div>
 
   <div id="app" style="display:none">
-    <!-- 小的 Tab 导航（新增，不移除你原来的 form/table） -->
+    <!-- 小 Tab 导航 -->
     <nav class="mini-tabs" aria-label="主功能">
       <button class="tab active" data-show="ledger">记账</button>
       <button class="tab" data-show="stats">统计</button>
       <button class="tab" data-show="profile">用户资料</button>
     </nav>
 
+    <!-- 记账表单 -->
     <h2>记账本</h2>
-
-    <!-- 原有表单（保留） -->
     <form id="recordForm">
       <input type="date" id="date" required />
       <input type="number" id="amount" placeholder="金额" step="0.01" required />
@@ -42,6 +41,7 @@
       <button type="submit">添加</button>
     </form>
 
+    <!-- 记账表格 -->
     <table id="ledgerTable">
       <thead>
         <tr>
@@ -55,27 +55,27 @@
       <tbody></tbody>
     </table>
 
-    <div style="margin-top: 20px;" class="controls-row">
+    <div class="controls-row">
       <button id="exportBtn">导出到 iCloud Drive</button>
       <button id="syncBtn">一键同步</button>
       <input type="file" id="importFile" style="margin-left: 10px;" />
       <button id="logoutBtn" style="float: right; background-color: #ff3b30;">登出</button>
     </div>
 
-    <!-- 统计区（默认隐藏，由 Tab 显示） -->
+    <!-- 统计区 -->
     <div id="statsPane" class="tabPane" style="display:none; margin-top:18px;">
       <h2>支出统计</h2>
       <canvas id="chart"></canvas>
     </div>
 
-    <!-- 用户资料区（新增） -->
+    <!-- 用户资料区 -->
     <div id="profilePane" class="tabPane" style="display:none; margin-top:18px;">
       <h2>用户资料</h2>
       <p><strong>用户名：</strong><span id="profileUsername"></span></p>
       <p><strong>记录数：</strong><span id="profileCount"></span></p>
 
       <div style="margin-top:12px;">
-        <button id="copySyncBtn">复制同步码（复制到剪贴板）</button>
+        <button id="copySyncBtn">复制同步码（剪贴板）</button>
         <button id="pasteSyncBtn">粘贴同步码并导入</button>
         <button id="exportUserBtn">导出当前账户 JSON</button>
         <input type="file" id="importUserFile" style="display:none" />
@@ -84,13 +84,12 @@
       </div>
 
       <p class="muted" style="margin-top:12px;">
-        同步说明：你可以导出 JSON 并保存到 iCloud Drive，或在电脑上复制“同步码”并粘贴到手机来导入单个账户的数据。
+        同步说明：你可以导出 JSON 并保存到 iCloud Drive，或在设备间复制同步码来导入单个账户的数据。
       </p>
     </div>
-
   </div>
 
-  <!-- 加载外部逻辑（defer） -->
+  <!-- JS 脚本 -->
   <script src="ledger-icloud.js" defer></script>
 </body>
 </html>
