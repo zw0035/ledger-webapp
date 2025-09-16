@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google 风格记账本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+        /* CSS 代码，完全复刻你的第二版样式 */
+        :root {
+            --color-primary: #1a73e8;
+            --color-primary-light: #e8f0fe;
+            --color-secondary: #0f9d58;
+            --color-danger: #d93025;
+            --color-text: #202124;
+            --color-text-light: #5f6368;
+            --color-bg: #f8f9fa;
+            --color-card-bg: #ffffff;
+            --color-border: #dadce0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Roboto", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 40px; /* 电脑端更大间距 */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 960px; /* 电脑端更宽 */
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* 两栏布局 */
+            gap: 24px;
+        }
+
+        /* ====== 卡片面板 ====== */
+        .card-pane {
+            background-color: var(--color-card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            padding: 32px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--color-text);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--color-text);
+        }
+
+        /* ====== 输入框 (Input) ====== */
+        .input-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .input-container input {
+            width: 100%;
+            padding: 16px 12px 6px;
+            border: none;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 16px;
+            color: var(--color-text);
+            background-color: transparent;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        .input-container input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 1px 0 0 var(--color-primary);
+        }
+        .input-container label {
+            position: absolute;
+            top: 14px;
+            left: 12px;
+            font-size: 16px;
+            color: var(--color-text-light);
+            pointer-events: none;
+            transition: transform 0.3s, font-size 0.3s, color 0.3s;
+        }
+        .input-container input:focus + label,
+        .input-container input:not(:placeholder-shown) + label {
+            transform: translateY(-16px);
+            font-size: 12px;
+            color: var(--color-primary);
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px 24px;
+        }
+        .input-container input[type="date"] {
+            padding: 16px 12px 6px;
+        }
+        .input-container input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.4);
+        }
+
+        /* ====== 按钮 (Button) ====== */
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn.btn-primary {
+            background-color: var(--color-primary);
+            color: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .btn.btn-primary:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .btn.btn-secondary {
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+        }
+        .btn.btn-secondary:hover {
+            background-color: var(--color-primary-light);
+        }
+        .btn.btn-action {
+            background-color: var(--color-primary);
+            color: #fff;
+            width: 100%;
+        }
+        .btn.btn-action:hover {
+            background-color: #1565c0;
+        }
+        .btn.btn-text {
+            background-color: transparent;
+            color: var(--color-text-light);
+            box-shadow: none;
+            padding: 8px 16px;
+        }
+        .btn.btn-text.btn-danger {
+            color: var(--color-danger);
+        }
+        .btn.btn-text:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        /* 加载状态 */
+        .btn.loading {
+            background-color: #e0e0e0;
+            color: #9e9e9e;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn.loading span {
+            opacity: 0;
+        }
+        .btn.loading::before {
+            content: "加载中...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 500;
+            color: #9e9e9e;
+            text-transform: none;
+        }
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .bottom-actions {
+            justify-content: space-between;
+        }
+
+        /* ====== Tab 导航栏 ====== */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 24px;
+        }
+        .tab-item {
+            padding: 12px 16px;
+            border: none;
+            background-color: transparent;
+            color: var(--color-text-light);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+        .tab-item.active {
+            color: var(--color-primary);
+        }
+        .tab-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--color-primary);
+        }
+
+        /* ====== 隐藏和显示 Tab 内容 ====== */
+        .tab-content {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .tab-content.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* ====== 表格 (Table) ====== */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 24px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th,
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--color-border);
+            text-align: left;
+        }
+        th {
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            cursor: pointer;
+        }
+        th.sortable::after {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border: 1px solid var(--color-text-light);
+            border-left: none;
+            border-top: none;
+            transform: rotate(45deg);
+            margin-left: 8px;
+            opacity: 0.5;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        th.asc::after {
+            transform: rotate(-135deg);
+            opacity: 1;
+        }
+        th.desc::after {
+            transform: rotate(45deg);
+            opacity: 1;
+        }
+        tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        .delete-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--color-danger);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 8px;
+        }
+
+        /* ====== 提示和消息 ====== */
+        .message-box {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            min-height: 20px;
+            margin-top: 12px;
+            color: var(--color-danger);
+        }
+        .message-box.success {
+            color: var(--color-secondary);
+        }
+        .note-text {
+            font-size: 12px;
+            color: var(--color-text-light);
+            text-align: center;
+            margin-top: 24px;
+        }
+        .file-input {
+            display: none;
+        }
+
+        /* ====== 气泡提示 ====== */
+        .tipBubble {
+            position: absolute;
+            background: rgba(33, 33, 33, 0.9);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 400;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 9999;
+            white-space: nowrap;
+        }
+
+        /* ====== 杂项 ====== */
+        .profile-info {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .profile-info strong {
+            font-weight: 500;
+        }
+        .chart-container {
+            padding: 16px;
+            background-color: var(--color-card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+</head>
+<body class="material-theme">
+    <div class="app-container">
+        <div id="login-pane" class="card-pane">
+            <h1 class="card-title">登录 / 注册</h1>
+            <form id="loginForm">
+                <div class="input-container">
+                    <input id="username" type="text" placeholder=" " autocomplete="username" />
+                    <label for="username">用户名</label>
+                </div>
+                <div class="input-container">
+                    <input id="password" type="password" placeholder=" " autocomplete="current-password" />
+                    <label for="password">密码</label>
+                </div>
+                <div class="button-group">
+                    <button id="loginBtn" class="btn btn-primary" type="button"><span>登录</span></button>
+                    <button id="registerBtn" class="btn btn-secondary" type="button"><span>注册</span></button>
+                </div>
+                <div id="loginMsg" class="message-box"></div>
+            </form>
+        </div>
+
+        <div id="app-pane" class="card-pane" style="display:none">
+            <nav class="tab-bar">
+                <button class="tab-item active" data-tab-name="ledger">记账</button>
+                <button class="tab-item" data-tab-name="stats">统计</button>
+                <button class="tab-item" data-tab-name="profile">资料</button>
+            </nav>
+
+            <div class="tab-content" id="ledger-tab-content">
+                <h2 class="section-title">记账本</h2>
+                <form id="recordForm" class="form-container">
+                    <div class="input-grid">
+                        <div class="input-container">
+                            <input type="date" id="date" required />
+                            <label for="date">日期</label>
+                        </div>
+                        <div class="input-container">
+                            <input type="number" id="amount" placeholder=" " step="0.01" required />
+                            <label for="amount">金额</label>
+                        </div>
+                        <div class="input-container">
+                            <input type="text" id="category" placeholder=" " required />
+                            <label for="category">类别</label>
+                        </div>
+                        <div class="input-container">
+                            <input type="text" id="note" placeholder=" " />
+                            <label for="note">备注</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-action"><span>添加记录</span></button>
+                </form>
+
+                <div class="table-container">
+                    <table id="ledgerTable">
+                        <thead>
+                            <tr>
+                                <th data-sort-by="date" class="sortable">日期</th>
+                                <th data-sort-by="amount" class="sortable">金额</th>
+                                <th>类别</th>
+                                <th>备注</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="panel-actions bottom-actions">
+                    <button id="exportBtn" class="btn btn-text">导出</button>
+                    <input type="file" id="importFile" class="file-input" />
+                    <button id="logoutBtn" class="btn btn-text btn-danger">登出</button>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="stats-tab-content">
+                <h2 class="section-title">支出统计</h2>
+                <div class="chart-container">
+                    <canvas id="chart"></canvas>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="profile-tab-content">
+                <h2 class="section-title">用户资料</h2>
+                <div class="profile-info">
+                    <p><strong>用户名:</strong> <span id="profileUsername"></span></p>
+                    <p><strong>记录数:</strong> <span id="profileCount"></span></p>
+                </div>
+
+                <div class="panel-actions bottom-actions">
+                    <button id="copySyncBtn" class="btn btn-text">复制同步码</button>
+                    <button id="pasteSyncBtn" class="btn btn-text">粘贴同步码</button>
+                    <button id="exportUserBtn" class="btn btn-text">导出账户</button>
+                    <input type="file" id="importUserFile" class="file-input" />
+                    <button id="importUserBtn" class="btn btn-text">文件导入</button>
+                    <button id="deleteAccountBtn" class="btn btn-text btn-danger">删除账户</button>
+                </div>
+                <p class="note-text">
+                    导出备份文件或复制同步码，可将数据保存到其他设备。
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="ledger.js" defer></script>
+</body>
+</html>
