@@ -7,15 +7,13 @@
 </head>
 <body>
 <script>
-    // 检测用户代理字符串，判断是否为移动设备
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
-    // 根据设备类型加载不同的页面
     if (isMobileDevice()) {
-        window.location.href = "index_mobile.html";
+        window.location.href = "mobile.html";
     } else {
-        window.location.href = "index_desktop.html";
+        window.location.href = "desktop.html";
     }
 </script>
 </body>
