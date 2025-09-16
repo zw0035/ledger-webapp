@@ -1,56 +1,172 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iCloud 本地记账本</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body { font-family: sans-serif; margin: 10px; }
-#login, #app { max-width: 600px; margin: auto; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
-@media (max-width: 500px) { table { display: block; overflow-x: auto; } }
-button { margin: 2px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>iCloud 本地记账本</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* 苹果风格简洁字体 */
+    body {
+      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background-color: #f5f5f7;
+      margin: 0;
+      padding: 20px;
+      color: #1d1d1f;
+    }
+    #login, #app {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+      padding: 30px 40px;
+    }
+    h2 {
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="date"],
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      border: 1px solid #d2d2d7;
+      border-radius: 8px;
+      font-size: 16px;
+      outline-offset: 2px;
+      outline-color: #0071e3;
+      transition: outline-color 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus {
+      outline-color: #0071e3;
+    }
+    button {
+      background-color: #0071e3;
+      border: none;
+      color: white;
+      padding: 12px 28px;
+      margin-right: 12px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #005bb5;
+    }
+    button:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 15px;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 12px 8px;
+      border-bottom: 1px solid #d2d2d7;
+    }
+    th {
+      font-weight: 600;
+      color: #6e6e73;
+    }
+    .deleteBtn {
+      background-color: #ff3b30;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .deleteBtn:hover {
+      background-color: #c1271a;
+    }
+    #loginMsg {
+      color: #ff3b30;
+      margin-top: 12px;
+      min-height: 20px;
+      font-weight: 600;
+    }
+    #app {
+      display: none;
+    }
+    canvas {
+      margin-top: 30px;
+      max-width: 100%;
+      height: 280px !important;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+      background: #fff;
+    }
+    @media (max-width: 600px) {
+      #login, #app {
+        margin: 20px 16px;
+        padding: 24px 20px;
+      }
+      button {
+        width: 100%;
+        margin-bottom: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div id="login">
+    <h2>登录 / 注册</h2>
+    <input id="username" placeholder="用户名" autocomplete="username" />
+    <input id="password" type="password" placeholder="密码" autocomplete="current-password" />
+    <div>
+      <button id="loginBtn">登录</button>
+      <button id="registerBtn">注册</button>
+    </div>
+    <div id="loginMsg"></div>
+  </div>
 
-<div id="login">
-  <h2>登录 / 注册</h2>
-  <input id="username" placeholder="用户名"><br><br>
-  <input id="password" type="password" placeholder="密码"><br><br>
-  <button id="loginBtn">登录</button>
-  <button id="registerBtn">注册</button>
-  <div id="loginMsg" style="color:red;margin-top:10px;"></div>
-</div>
+  <div id="app">
+    <h2>记账本</h2>
+    <form id="recordForm">
+      <input type="date" id="date" required />
+      <input type="number" id="amount" placeholder="金额" step="0.01" required />
+      <input type="text" id="category" placeholder="类别" required />
+      <input type="text" id="note" placeholder="备注" />
+      <button type="submit">添加</button>
+    </form>
 
-<div id="app" style="display:none">
-  <h2>记账本</h2>
-  <form id="recordForm">
-    <input type="date" id="date" required>
-    <input type="number" id="amount" placeholder="金额" required>
-    <input type="text" id="category" placeholder="类别" required>
-    <input type="text" id="note" placeholder="备注">
-    <button type="submit">添加</button>
-  </form>
+    <table id="ledgerTable">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>金额</th>
+          <th>类别</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <table id="ledgerTable">
-    <thead>
-      <tr><th>日期</th><th>金额</th><th>类别</th><th>备注</th><th>操作</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <div style="margin-top: 20px;">
+      <button id="exportBtn">导出到 iCloud Drive</button>
+      <button id="syncBtn">一键同步</button>
+      <input type="file" id="importFile" style="margin-left: 10px;" />
+      <button id="logoutBtn" style="float: right; background-color: #ff3b30;">登出</button>
+    </div>
 
-  <br>
-  <button id="exportBtn">导出到 iCloud Drive</button>
-  <button id="syncBtn">一键同步</button>
-  <input type="file" id="importFile">
-  <button id="logoutBtn">登出</button>
+    <canvas id="chart"></canvas>
+  </div>
 
-  <canvas id="chart" style="max-width:100%;height:300px;margin-top:20px;"></canvas>
-</div>
-
-<script src="ledger-icloud.js" defer></script>
+  <script src="ledger-icloud.js" defer></script>
 </body>
 </html>
