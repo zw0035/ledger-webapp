@@ -1,4 +1,4 @@
-// ledger-icloud.js — 最终修复版
+// ledger-icloud.js — 最终修复版，适配全新UI
 // 修复了Tab切换问题，确保所有功能正常工作
 
 // ====== 工具函数 ======
@@ -48,7 +48,7 @@ const App = {
             deleteAccountBtn: 'deleteAccountBtn',
             profileUsername: 'profileUsername',
             profileCount: 'profileCount',
-            tabBtns: '.mini-tabs .tab',
+            tabBtns: '.tab-nav .tab-btn',
             tabContent: '.tab-content',
         },
         DATA_KEY: 'ledger_users',
@@ -112,7 +112,7 @@ const App = {
                 <td>${r.amount}</td>
                 <td>${r.category}</td>
                 <td>${r.note}</td>
-                <td><button class="deleteBtn" data-index="${this.state.records.indexOf(r)}">删除</button></td>
+                <td><button class="delete-btn" data-index="${this.state.records.indexOf(r)}">删除</button></td>
             </tr>
         `).join('');
     },
@@ -140,10 +140,10 @@ const App = {
                 labels,
                 datasets: [{
                     data,
-                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#8E8E93', '#FF9F40', '#FF5A5F', '#6A4C93', '#009688']
+                    backgroundColor: ['#5d5d81', '#00878a', '#e65251', '#f3b723', '#2a9d8f', '#ffc7c7', '#56b8e2', '#cdb4db', '#ff6b6b', '#83c5be']
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 10 } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, font: { size: 12 } } } } }
         });
     },
 
@@ -162,12 +162,14 @@ const App = {
     switchToTab(tabName) {
         $all(this.constants.ELEM_ID.tabContent).forEach(el => {
             el.classList.remove('active');
-            el.style.display = 'none'; // 确保旧的面板隐藏
+            el.style.display = 'none';
         });
         const activeTabContent = $id(`${tabName}-tab-content`);
         if(activeTabContent) {
-            activeTabContent.style.display = 'block'; // 先显示以应用动画
-            activeTabContent.classList.add('active');
+            activeTabContent.style.display = 'block';
+            setTimeout(() => { // 短暂延迟以确保动画生效
+                 activeTabContent.classList.add('active');
+            }, 10);
         }
 
         $all(this.constants.ELEM_ID.tabBtns).forEach(btn => btn.classList.toggle('active', btn.dataset.tabName === tabName));
@@ -205,7 +207,7 @@ const App = {
     showMessage(elId, msg, isError = true) {
         const el = $id(elId);
         if (el) {
-            el.style.color = isError ? '#ff3b30' : 'green';
+            el.style.color = isError ? 'var(--danger-color)' : 'var(--secondary-color)';
             el.innerText = msg;
         }
     },
@@ -294,7 +296,10 @@ const App = {
         const category = $id(this.constants.ELEM_ID.category).value.trim();
         const note = $id(this.constants.ELEM_ID.note).value.trim();
 
-        if (isNaN(amount) || amount <= 0) return this.showMessage('recordForm', '金额必须大于0', true);
+        if (isNaN(amount) || amount <= 0) {
+            this.showMessage('recordForm', '金额必须大于0', true);
+            return;
+        }
 
         const rec = { date, amount, category, note };
         this.state.records.push(rec);
@@ -337,7 +342,6 @@ const App = {
     bindEvents() {
         const { ELEM_ID } = this.constants;
 
-        // 登录/注册表单
         $id(ELEM_ID.loginBtn)?.addEventListener('click', () => this.handleLogin());
         $id(ELEM_ID.registerBtn)?.addEventListener('click', () => this.handleRegister());
         $id(ELEM_ID.loginForm)?.addEventListener('keydown', e => {
@@ -346,19 +350,16 @@ const App = {
                 this.handleLogin();
             }
         });
-
-        // 登出和记账表单
         $id(ELEM_ID.logoutBtn)?.addEventListener('click', () => this.handleLogout());
         $id(ELEM_ID.recordForm)?.addEventListener('submit', e => this.handleAddRecord(e));
 
-        // Tab 切换
         $all(ELEM_ID.tabBtns).forEach(btn => {
             btn.addEventListener('click', () => this.switchToTab(btn.dataset.tabName));
         });
 
-        // 表格排序
-        $all('.sortable').forEach(th => {
-            th.addEventListener('click', () => {
+        $id(ELEM_ID.ledgerTable)?.addEventListener('click', e => {
+            const th = e.target.closest('th');
+            if (th && th.classList.contains('sortable')) {
                 const key = th.dataset.sortBy;
                 let direction = 'asc';
                 if (this.state.sortConfig.key === key) {
@@ -368,46 +369,40 @@ const App = {
                 $all('.sortable').forEach(t => t.classList.remove('asc', 'desc'));
                 th.classList.add(direction);
                 this.renderTable();
-            });
-        });
-
-        // 表格删除事件委托
-        $id(ELEM_ID.ledgerTable)?.addEventListener('click', (e) => {
-            const btn = e.target.closest('.deleteBtn');
-            if (!btn) return;
-
-            const i = parseInt(btn.dataset.index);
-            if (!btn.dataset.confirmed) {
-                this.showTip(btn, '再次点击删除以确认', 5000);
-                btn.dataset.confirmed = 'true';
-                setTimeout(() => {
-                    delete btn.dataset.confirmed;
-                }, 5000);
-                return;
             }
-            this.state.records.splice(i, 1);
-            this.state.users[this.state.currentUser].records = this.state.records;
-            this.saveLocalData();
-            this.renderTable();
-            this.renderChart();
-            this.renderProfile();
-            this.showTip(btn, '记录已删除', 1200);
+
+            const btn = e.target.closest('.delete-btn');
+            if (btn) {
+                const i = parseInt(btn.dataset.index);
+                if (!btn.dataset.confirmed) {
+                    this.showTip(btn, '再次点击删除以确认', 5000);
+                    btn.dataset.confirmed = 'true';
+                    setTimeout(() => {
+                        delete btn.dataset.confirmed;
+                    }, 5000);
+                    return;
+                }
+                this.state.records.splice(i, 1);
+                this.state.users[this.state.currentUser].records = this.state.records;
+                this.saveLocalData();
+                this.renderTable();
+                this.renderChart();
+                this.renderProfile();
+                this.showTip(btn, '记录已删除', 1200);
+            }
         });
 
-        // 导出/导入/同步码
         $id(ELEM_ID.exportBtn)?.addEventListener('click', () => {
             if (!this.state.currentUser) return alert('请先登录');
             const payload = { users: this.state.users, currentUser: this.state.currentUser, exportedAt: new Date().toISOString() };
             this.downloadJSON(payload, `ledger_backup_${this.state.currentUser}.json`, ELEM_ID.exportBtn);
         });
         $id(ELEM_ID.importFile)?.addEventListener('change', () => this.handleFileImport(ELEM_ID.importFile));
-
         $id(ELEM_ID.copySyncBtn)?.addEventListener('click', () => {
             if (!this.state.currentUser) return alert('请先登录');
             const payload = { users: { [this.state.currentUser]: this.state.users[this.state.currentUser] }, currentUser: this.state.currentUser, exportedAt: new Date().toISOString() };
             this.copyToClipboard(this.makeSyncCode(payload), ELEM_ID.copySyncBtn, '已复制到剪贴板');
         });
-
         $id(ELEM_ID.pasteSyncBtn)?.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
