@@ -1,288 +1,329 @@
-/* style.css - 专业记账应用风格 */
+/* style.css - 极简主义现代设计 */
 
-/* ====== 基础字体和背景 ====== */
+/* ====== 基础样式与变量 ====== */
+:root {
+    --primary-color: #5d5d81;
+    --secondary-color: #00878a;
+    --danger-color: #e65251;
+    --bg-color: #f7f9fc;
+    --surface-color: #ffffff;
+    --text-color: #212529;
+    --text-light-color: #6c757d;
+    --border-color: #e9ecef;
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
 body {
-    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    background-color: #f5f5f7;
+    font-family: "Inter", "Helvetica Neue", "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     margin: 0;
-    padding: 30px 15px;
-    color: #1d1d1f;
-    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    min-height: 100vh;
 }
 
-/* ====== 容器 ====== */
-.card {
+/* ====== 核心容器 ====== */
+.panel {
     width: 100%;
-    max-width: 650px;
-    background: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-    padding: 40px 50px;
+    max-width: 700px;
+    background: var(--surface-color);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-medium);
+    padding: 2.5rem;
     box-sizing: border-box;
     position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* ====== 标题 ====== */
-h2 {
-    font-weight: 700;
-    font-size: 28px;
-    margin-bottom: 30px;
-    color: #111;
-    letter-spacing: 0.02em;
+.panel-title {
+    font-weight: 600;
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin: 0 0 2rem;
+    text-align: center;
 }
 
-/* ====== 输入框 ====== */
-input[type="text"],
-input[type="password"],
-input[type="date"],
-input[type="number"] {
+.panel-note {
+    font-size: 0.85rem;
+    color: var(--text-light-color);
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.panel-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.panel-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.panel-footer input[type="file"] {
+    flex-grow: 1;
+}
+
+/* ====== 输入框组（Input Group） ====== */
+.input-group {
+    position: relative;
+    margin-bottom: 2rem;
+}
+.input-group input {
     width: 100%;
-    padding: 14px 18px;
-    margin-bottom: 25px;
-    border: 1.5px solid #d1d1d6;
-    border-radius: 12px;
-    font-size: 17px;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    outline-offset: 2px;
-    outline-color: transparent;
-    box-sizing: border-box;
+    border: none;
+    border-bottom: 2px solid var(--border-color);
+    padding: 0.75rem 0.5rem;
+    font-size: 1rem;
+    background: transparent;
+    transition: border-color 0.3s ease;
+    outline: none;
+}
+.input-group input:focus {
+    border-color: var(--primary-color);
+}
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -0.75rem;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+}
+.input-group label {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.5rem;
+    color: var(--text-light-color);
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="date"]:focus,
-input[type="number"]:focus {
-    border-color: #0071e3;
-    outline-color: #0071e3;
-    box-shadow: 0 0 8px rgba(0, 113, 227, 0.4);
+/* 针对日期输入框的特殊处理，因为 placeholder 不起作用 */
+input[type="date"] + label {
+    opacity: 0;
+    visibility: hidden;
+}
+input[type="date"] {
+    color: var(--text-color);
+}
+/* Chrome/Edge 日期选择器按钮 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.7;
+    cursor: pointer;
 }
 
 /* ====== 按钮 ====== */
-button {
-    background: linear-gradient(135deg, #0071e3, #004bb5);
-    border: none;
-    color: #fff;
-    padding: 14px 32px;
-    border-radius: 22px;
-    font-size: 17px;
-    font-weight: 700;
+.btn {
+    padding: 0.75rem 2.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    user-select: none;
-    transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.25s ease;
-    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
-    flex-shrink: 0;
-    min-width: 110px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    text-align: center;
     position: relative;
+    min-width: 6rem;
+    box-shadow: var(--shadow-light);
 }
-
-button span {
+.btn span {
     transition: opacity 0.2s ease;
 }
-
-button:hover {
-    background: linear-gradient(135deg, #005bb5, #003f7a);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 91, 181, 0.5);
-}
-
-button:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
-}
-
-/* 加载状态 */
-button.loading {
+.btn.loading {
     cursor: not-allowed;
-    background: #a0a0a0;
+    background-color: var(--border-color);
     box-shadow: none;
 }
-button.loading span {
+.btn.loading span {
     opacity: 0;
 }
-button.loading::before {
+.btn.loading::before {
     content: "加载中...";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    color: var(--text-light-color);
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
     color: #fff;
-    font-size: 17px;
+}
+.btn-primary:hover {
+    background: var(--secondary-color);
 }
 
-/* 登出按钮特化 */
-#logoutBtn {
-    background: #ff3b30;
-    box-shadow: 0 4px 10px rgba(255, 59, 48, 0.35);
-    margin-left: auto;
+.btn-secondary {
+    background: transparent;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-secondary:hover {
+    background: rgba(93, 93, 129, 0.1);
 }
 
-#logoutBtn:hover {
-    background: #c1271a;
-    box-shadow: 0 8px 20px rgba(193, 39, 26, 0.5);
+.btn-action {
+    background: var(--secondary-color);
+    color: #fff;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+.btn-action:hover {
+    background: #00666a;
 }
 
-/* ====== 表格 ====== */
+.btn-danger {
+    background: var(--danger-color);
+    color: #fff;
+    border-color: var(--danger-color);
+}
+.btn-danger:hover {
+    background: #b84040;
+}
+
+/* ====== 消息和提示 ====== */
+.message-box {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 1.5rem;
+    margin-top: 1rem;
+}
+.message-box::before {
+    content: "•";
+    margin-right: 0.5em;
+}
+
+/* ====== Tab 导航 ====== */
+.tab-nav {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+}
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light-color);
+    transition: all 0.3s ease;
+    position: relative;
+    top: 2px;
+}
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    transform: translateY(2px);
+}
+
+/* ====== 表单和表格 ====== */
+.form-section {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background-color: var(--bg-color);
+    margin-bottom: 2rem;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.03);
+}
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem 2rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    background: var(--surface-color);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-light);
+}
 table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px;
-    margin-top: 30px;
-    font-size: 16px;
-    background: #fff;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border-collapse: collapse;
+    font-size: 0.95rem;
 }
-
-thead tr {
-    background-color: #f2f2f7;
-    border-bottom: none;
-}
-
-th, td {
-    padding: 14px 20px;
+table thead {
+    background-color: #f0f2f5;
     text-align: left;
-    vertical-align: middle;
 }
-
-th {
-    color: #6e6e73;
+table th, table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+table th {
+    color: var(--text-light-color);
     font-weight: 600;
-    letter-spacing: 0.04em;
     text-transform: uppercase;
-    font-size: 13px;
-    user-select: none;
-    cursor: default;
-}
-
-.sortable {
+    letter-spacing: 0.05rem;
     cursor: pointer;
-    position: relative;
-    padding-right: 28px;
 }
-
-.sortable::after {
+table th.sortable::after {
     content: "";
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 5px solid #a0a0a0;
-    opacity: 0.4;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 0.1rem solid var(--text-light-color);
+    border-left: none;
+    border-top: none;
+    transform: rotate(45deg);
+    margin-left: 0.5rem;
+    opacity: 0.5;
+    transition: transform 0.2s, opacity 0.2s;
 }
-
-.sortable.asc::after {
+table th.asc::after {
+    transform: rotate(-135deg);
     opacity: 1;
-    transform: translateY(-50%) rotate(180deg);
 }
-
-.sortable.desc::after {
+table th.desc::after {
+    transform: rotate(45deg);
     opacity: 1;
-    transform: translateY(-50%) rotate(0deg);
+}
+table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
-
-tbody tr {
-    background: #ffffff;
-    transition: background-color 0.3s ease;
-    border-radius: 15px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.04);
-    cursor: default;
-}
-
-tbody tr:hover {
-    background-color: #f0f5ff;
-}
-
-/* 删除按钮 */
-.deleteBtn {
-    background-color: #ff3b30;
-    border-radius: 16px;
-    padding: 8px 16px;
-    font-weight: 700;
-    font-size: 14px;
-    color: white;
-    box-shadow: 0 3px 6px rgba(255, 59, 48, 0.4);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+.delete-btn {
+    background: none;
     border: none;
+    color: var(--danger-color);
+    font-weight: 500;
     cursor: pointer;
+    transition: color 0.2s ease;
+}
+.delete-btn:hover {
+    color: #c0392b;
 }
 
-.deleteBtn:hover {
-    background-color: #c1271a;
-    box-shadow: 0 6px 12px rgba(193, 39, 26, 0.5);
+/* ====== 图表和资料 ====== */
+.chart-container {
+    background: var(--surface-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-light);
 }
 
-/* ====== 提示信息 ====== */
-.message-box {
-    font-weight: 700;
-    min-height: 24px;
-    margin-top: 12px;
-    letter-spacing: 0.02em;
-    font-size: 15px;
+.profile-section p {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
 }
-#loginMsg { color: #ff3b30; }
-.form-tip { color: #ff3b30; }
-
-/* ====== canvas 图表 ====== */
-canvas#chart {
-    margin-top: 35px;
-    max-width: 100%;
-    height: 320px !important;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    background: #fff;
-}
-
-/* ====== Tab / 小组件 ====== */
-.mini-tabs { display:flex; gap:8px; margin-bottom:12px; }
-.mini-tabs .tab {
-    background:#eef2ff; color:#08306b; border-radius:12px; padding:8px 12px; border:none; font-weight:700; cursor:pointer;
-    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-}
-.mini-tabs .tab.active {
-    background: linear-gradient(135deg,#0071e3,#004bb5);
-    color:#fff;
-    box-shadow: 0 6px 16px rgba(0,113,227,0.18);
-}
-
-/* Tab 面板动画 */
-.tab-content {
-    display: none;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.28s ease, transform 0.28s ease;
-}
-.tab-content.active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.muted{ color:#6b7280; font-size:13px; }
-.controls-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
-
-/* ====== 气泡提示 ====== */
-.tipBubble {
-    position:absolute;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: 12px;
-    font-size: 13px;
+.profile-section span {
     font-weight: 600;
-    pointer-events:none;
-    opacity:0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index:9999;
-    white-space: nowrap;
+    color: var(--primary-color);
 }
