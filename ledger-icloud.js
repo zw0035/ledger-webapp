@@ -1,306 +1,346 @@
-/* ledger-icloud.js — 升级版
-   功能：
-   - 多标签 (记账 / 统计 / 我的)
-   - 导出 JSON / 导入 JSON / 复制同步码 / 粘贴同步码
-   - 本地保存 users -> localStorage['ledger_users']
-   - chart.js 饼图与折线图
-*/
+// ledger-icloud.js （在你原有功能上做增强：稳定绑定、Tab、同步码、Chart）
 
-// ======= 工具函数 =======
-function $(sel){ return document.querySelector(sel); }
-function showToast(msg, timeout=2000){
-  const t = $('#toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  t.style.opacity = '1';
-  setTimeout(()=>{ t.style.opacity = '0'; setTimeout(()=> t.style.display='none',300); }, timeout);
-}
+// ====== 工具 / 数据初始化 ======
+function $id(id){ return document.getElementById(id); }
 
-// base64 同步码
-function makeSyncCode(obj){
-  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
-}
-function parseSyncCode(code){
-  try{
-    const s = decodeURIComponent(escape(atob(code)));
-    return JSON.parse(s);
-  } catch(e){ return null; }
-}
-
-// ======= 数据 =======
+// 载入本地 users（如果存在）
 let users = {};
+try { const raw = localStorage.getItem('ledger_users'); if(raw) users = JSON.parse(raw); } catch(e) { users = {}; }
 let currentUser = null;
 let records = [];
-let expenseChart = null, trendChart = null;
+let chart = null;
 
-// 读取本地
-(function loadLocal(){
-  try{
-    const raw = localStorage.getItem('ledger_users');
-    if(raw) users = JSON.parse(raw);
-  }catch(e){ users = {}; }
-})();
-
-function saveLocal(){ localStorage.setItem('ledger_users', JSON.stringify(users)); }
-
-// ======= 哈希密码（同你之前） =======
+// 安全哈希（优先使用 crypto.subtle；若不可用，使用可警告的 fallback）
 async function hashPassword(pwd){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(!pwd) return '';
+  try {
+    if(window.crypto && crypto.subtle && crypto.subtle.digest){
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  } catch(e){
+    console.warn('crypto.subtle 失败，降级使用不安全的编码（仅在不支持 crypto 的环境使用）', e);
+  }
+  // fallback (不安全) — 仅在极端环境下使用
+  try {
+    return btoa(unescape(encodeURIComponent(pwd)));
+  } catch(e){
+    return String(pwd);
+  }
 }
 
-// ======= UI / Tabs =======
-function switchTab(name){
-  document.querySelectorAll('.tab').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
-  document.querySelectorAll('.tab-panel').forEach(p=> p.classList.toggle('active', p.id === `tab-${name}`));
-  // update charts when entering stats
-  if(name === 'stats'){ updateCharts(); }
-}
-document.addEventListener('click', (e)=>{
-  const tab = e.target.closest('.tab');
-  if(tab) switchTab(tab.dataset.tab);
-});
+function saveLocal(){ try{ localStorage.setItem('ledger_users', JSON.stringify(users)); }catch(e){ console.error('保存本地失败', e); } }
 
-// ======= 登录/注册/登出 =======
-async function doRegister(){
-  const u = $('#username').value.trim();
-  const p = $('#password').value;
-  const msg = $('#loginMsg');
-  msg.style.color = '#ff3b30';
-  if(!u || !p){ msg.textContent = '请输入用户名和密码'; return; }
-  if(users[u]){ msg.textContent = '用户已存在（或请导入同步码）'; return; }
-  users[u] = { passwordHash: await hashPassword(p), records: [] };
-  saveLocal();
-  msg.style.color = 'green';
-  msg.textContent = '注册成功，请登录';
-  showToast('注册成功');
-}
-
-async function doLogin(){
-  const u = $('#username').value.trim();
-  const p = $('#password').value;
-  const msg = $('#loginMsg');
-  msg.style.color = '#ff3b30';
-  if(!u || !p){ msg.textContent = '请输入用户名和密码'; return; }
-  if(!users[u]){ msg.textContent = '用户不存在（试试导入同步码）'; return; }
-  const hash = await hashPassword(p);
-  if(hash !== users[u].passwordHash){ msg.textContent = '密码错误'; return; }
-
-  // 登录成功
-  currentUser = u;
-  records = users[u].records || [];
-  $('#login').style.display = 'none';
-  $('#panel-app').style.display = 'block';
-  $('#currentUserLabel').textContent = currentUser;
-  $('#profileUsername').textContent = currentUser;
-  $('#loginMsg').textContent = '';
-  renderTable();
-  updateSummary();
-  updateCharts();
-  showToast('登录成功');
-  switchTab('ledger');
-}
-
-function doLogout(){
-  if(currentUser){ users[currentUser].records = records; saveLocal(); }
-  currentUser = null; records = [];
-  $('#panel-app').style.display = 'none';
-  $('#login').style.display = 'block';
-  $('#username').value = ''; $('#password').value = '';
-  showToast('已登出');
-}
-
-// ======= 表格/记录操作 =======
+// ====== 渲染表格 ======
 function renderTable(){
-  const tbody = $('#ledgerTable tbody');
+  const tbody = document.querySelector('#ledgerTable tbody');
   tbody.innerHTML = '';
-  records.forEach((r,i)=>{
+  records.forEach((r, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.date}</td><td>${r.category}</td><td>${Number(r.amount).toFixed(2)}</td><td>${r.note||''}</td>
-      <td><button class="deleteBtn" data-i="${i}">删除</button></td>`;
+    tr.innerHTML = `
+      <td>${r.date || ''}</td>
+      <td>${Number(r.amount || 0).toFixed(2)}</td>
+      <td>${r.category || ''}</td>
+      <td>${r.note || ''}</td>
+      <td><button class="deleteBtn" data-index="${i}">删除</button></td>
+    `;
     tbody.appendChild(tr);
   });
-  // delete binding
+
+  // 绑定删除（事件委托也可）
   tbody.querySelectorAll('.deleteBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const idx = Number(btn.dataset.i);
-      records.splice(idx,1);
-      users[currentUser].records = records;
-      saveLocal();
-      renderTable();
-      updateCharts();
-      updateSummary();
-      showToast('已删除记录');
+      const idx = Number(btn.dataset.index);
+      if (Number.isFinite(idx)) {
+        records.splice(idx,1);
+        users[currentUser].records = records;
+        saveLocal();
+        renderTable();
+        renderChart();
+        renderProfile();
+      }
     });
   });
 }
 
-function updateSummary(){
-  let income = 0, expense = 0;
-  records.forEach(r=> {
-    if(r.category === '收入' || r.category.toLowerCase()==='income') income += Number(r.amount);
-    else expense += Number(r.amount);
-  });
-  $('#totalIncome').textContent = income.toFixed(2);
-  $('#totalExpense').textContent = expense.toFixed(2);
-  $('#balance').textContent = (income - expense).toFixed(2);
-}
-
-// ======= Charts =======
-function updateCharts(){
-  // expense pie (current records)
+// ====== 统计图表 ======
+function renderChart(){
+  // 如果没有 Chart.js 或 canvas，静默返回
+  const canvas = $id('chart');
+  if(!canvas || typeof Chart === 'undefined') return;
+  const ctx = canvas.getContext('2d');
   const catMap = {};
-  records.forEach(r=> { if(!(r.category==='收入' || r.category.toLowerCase()==='income')) catMap[r.category] = (catMap[r.category]||0) + Number(r.amount); });
+  records.forEach(r=>{
+    const k = r.category || '未分类';
+    catMap[k] = (catMap[k]||0) + Number(r.amount || 0);
+  });
   const labels = Object.keys(catMap);
   const data = Object.values(catMap);
 
-  const expCtx = document.getElementById('expenseChart').getContext('2d');
-  if(expenseChart) expenseChart.destroy();
-  expenseChart = new Chart(expCtx, {
-    type:'pie',
-    data:{ labels, datasets:[{ data, backgroundColor: ['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF','#8E8E93'] }] }
-  });
-
-  // trend chart: group by month across all records
-  const monthMap = {};
-  (users[currentUser]?.records || []).forEach(r=>{
-    const m = (r.date || '').slice(0,7) || 'unknown';
-    if(!monthMap[m]) monthMap[m] = {income:0, expense:0};
-    if(r.category==='收入' || r.category.toLowerCase()==='income') monthMap[m].income += Number(r.amount);
-    else monthMap[m].expense += Number(r.amount);
-  });
-  const months = Object.keys(monthMap).sort();
-  const incomes = months.map(m=>monthMap[m].income);
-  const expenses = months.map(m=>monthMap[m].expense);
-
-  const trendCtx = document.getElementById('trendChart').getContext('2d');
-  if(trendChart) trendChart.destroy();
-  trendChart = new Chart(trendCtx, {
-    type:'line',
-    data:{ labels: months, datasets:[
-      { label:'收入', data: incomes, borderColor:'#36A2EB', fill:false },
-      { label:'支出', data: expenses, borderColor:'#FF6384', fill:false }
-    ]},
-    options:{ scales:{ y:{ beginAtZero:true } } }
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: ['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF','#8E8E93'] }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false }
   });
 }
 
-// ======= 导出 / 导入 / 复制同步码 =======
+// ====== 登录 / 注册 / 登出 ======
+async function doRegister(){
+  const u = $id('username').value.trim();
+  const p = $id('password').value;
+  const msg = $id('loginMsg');
+  msg.style.color = '#ff3b30';
+  if(!u || !p){ msg.innerText = '请输入用户名和密码'; return; }
+  if(users[u]){ msg.innerText = '用户已存在'; return; }
+  const h = await hashPassword(p);
+  users[u] = { passwordHash: h, records: [] };
+  saveLocal();
+  msg.style.color = 'green';
+  msg.innerText = '注册成功，请登录';
+}
+
+async function doLogin(){
+  const u = $id('username').value.trim();
+  const p = $id('password').value;
+  const msg = $id('loginMsg');
+  msg.style.color = '#ff3b30';
+  // quick visible feedback
+  console.log('尝试登录：', u);
+  if(!u || !p){ msg.innerText = '请输入用户名和密码'; return; }
+  if(!users[u]){ msg.innerText = '用户不存在（请注册或导入同步码）'; return; }
+  try {
+    const h = await hashPassword(p);
+    if(h !== users[u].passwordHash){ msg.innerText = '密码错误'; return; }
+    // 成功
+    currentUser = u;
+    records = users[u].records || [];
+    $id('login').style.display = 'none';
+    $id('app').style.display = 'block';
+    msg.innerText = '';
+    renderTable();
+    renderChart();
+    renderProfile();
+    switchTo('ledger'); // 默认显示记账
+  } catch(err){
+    console.error('登录异常', err);
+    alert('登录时发生错误，请在控制台查看：' + (err && err.message));
+  }
+}
+
+function doLogout(){
+  if(currentUser) users[currentUser].records = records;
+  saveLocal();
+  currentUser = null;
+  records = [];
+  $id('login').style.display = 'block';
+  $id('app').style.display = 'none';
+  $id('username').value = '';
+  $id('password').value = '';
+  $id('loginMsg').innerText = '';
+}
+
+// ====== 导出 / 导入 / 同步码 ======
 function exportData(){
-  if(!currentUser) { showToast('请先登录'); return; }
+  if(!currentUser){ alert('请先登录'); return; }
   const payload = { users, currentUser, exportedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+  const blob = new Blob([JSON.stringify(payload,null,2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `ledger_backup_${currentUser}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  showToast('已生成 JSON，保存到 iCloud Drive 完成跨设备同步');
+  alert('已生成 JSON 文件，请保存到 iCloud Drive 或在设备间传输以实现同步');
 }
 
-function importFromFile(file){
+function importDataFromFile(file){
+  if(!file){ return; }
   const reader = new FileReader();
-  reader.onload = function(evt){
+  reader.onload = function(e){
     try{
-      const imported = JSON.parse(evt.target.result);
+      const imported = JSON.parse(e.target.result);
       if(imported.users){
-        // merge users (preserve existing unless name conflict -> imported wins)
+        // 合并用户，导入的同名用户覆盖本地
         users = Object.assign({}, users, imported.users);
-        if(imported.currentUser) currentUser = imported.currentUser;
-        if(currentUser && users[currentUser]) records = users[currentUser].records || [];
+        if(imported.currentUser && users[imported.currentUser]) {
+          currentUser = imported.currentUser;
+          records = users[currentUser].records || [];
+        }
         saveLocal();
-        renderTable(); updateCharts(); updateSummary();
-        showToast('导入成功（已合并）');
+        renderTable();
+        renderChart();
+        renderProfile();
+        alert('导入成功（已合并）');
       } else {
-        showToast('JSON 格式不对');
+        alert('文件格式不正确');
       }
-    } catch(e){
-      showToast('导入失败: ' + e.message);
+    }catch(err){
+      alert('导入失败：' + err.message);
     }
   };
   reader.readAsText(file);
 }
 
-function copySyncCode(){
-  if(!currentUser){ showToast('请先登录'); return; }
+// 只导出当前账户（生成同步码）
+function makeSyncCode(obj){
+  try { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+  catch(e){ return btoa(JSON.stringify(obj)); }
+}
+function parseSyncCode(code){
+  try { return JSON.parse(decodeURIComponent(escape(atob(code)))); }
+  catch(e){ try{ return JSON.parse(atob(code)); } catch(err){ return null; } }
+}
+
+function copySyncCodeForCurrent(){
+  if(!currentUser){ alert('请先登录'); return; }
   const payload = { users: { [currentUser]: users[currentUser] }, currentUser, exportedAt: new Date().toISOString() };
   const code = makeSyncCode(payload);
-  navigator.clipboard.writeText(code).then(()=> showToast('同步码已复制到剪贴板')).catch(()=> showToast('复制失败，请手动复制'));
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=> alert('同步码已复制到剪贴板')).catch(()=> { prompt('请复制同步码（剪贴板不可用）', code); });
+  } else {
+    prompt('请复制同步码（浏览器不支持自动复制）', code);
+  }
 }
 
 function pasteSyncCodeAndImport(){
-  navigator.clipboard.readText().then(text=>{
-    const data = parseSyncCode(text);
-    if(!data || !data.users){ showToast('粘贴的同步码无效'); return; }
-    users = Object.assign({}, users, data.users);
-    // set currentUser to imported if single user in payload
-    if(data.currentUser) currentUser = data.currentUser;
-    if(currentUser && users[currentUser]) records = users[currentUser].records || [];
-    saveLocal();
-    renderTable(); updateCharts(); updateSummary();
-    showToast('已导入同步码（合并）');
-  }).catch(()=> showToast('读取剪贴板失败，请允许剪贴板权限或手动粘贴'));
+  if(navigator.clipboard && navigator.clipboard.readText){
+    navigator.clipboard.readText().then(text=>{
+      const parsed = parseSyncCode(text);
+      if(parsed && parsed.users){
+        users = Object.assign({}, users, parsed.users);
+        // 如果 payload 指定 currentUser，使用它
+        if(parsed.currentUser && users[parsed.currentUser]) {
+          currentUser = parsed.currentUser;
+          records = users[currentUser].records || [];
+        }
+        saveLocal();
+        renderTable(); renderChart(); renderProfile();
+        alert('已导入同步码（合并）');
+      } else alert('剪贴板内容不是有效的同步码');
+    }).catch(err=>{ alert('读取剪贴板失败：' + err.message); });
+  } else {
+    const text = prompt('请粘贴同步码（手动）');
+    if(!text) return;
+    const parsed = parseSyncCode(text);
+    if(parsed && parsed.users){
+      users = Object.assign({}, users, parsed.users);
+      if(parsed.currentUser && users[parsed.currentUser]) {
+        currentUser = parsed.currentUser; records = users[currentUser].records || [];
+      }
+      saveLocal();
+      renderTable(); renderChart(); renderProfile();
+      alert('已导入同步码（合并）');
+    } else alert('粘贴内容无效');
+  }
 }
 
-// ======= Add record handler =======
+// ====== 添加记录 ======
+function addRecordFromForm(e){
+  e && e.preventDefault();
+  if(!currentUser){ alert('请先登录'); return; }
+  const date = $id('date').value;
+  const amount = Number($id('amount').value);
+  const category = $id('category').value.trim();
+  const note = $id('note').value.trim();
+  if(!date || !amount || !category){ alert('请填写日期、金额和类别'); return; }
+  const rec = { date, amount, category, note };
+  records.push(rec);
+  users[currentUser].records = records;
+  saveLocal();
+  renderTable();
+  renderChart();
+  renderProfile();
+  // reset
+  try{ $id('recordForm').reset(); }catch(e){}
+  setTimeout(()=>{ alert('已添加记录，请点击一键同步或导出 JSON 保存到 iCloud Drive'); }, 200);
+}
+
+// ====== UI：Profile 渲染 / Tab 切换 ======
+function renderProfile(){
+  $id('profileUsername').textContent = currentUser || '';
+  $id('profileCount').textContent = (records && records.length) || 0;
+}
+
+function switchTo(tab){
+  // ledger: show form+table+controls; stats: show chart; profile: show profile panel
+  const ledgerElements = [$id('recordForm'), $id('ledgerTable'), document.querySelector('.controls-row')];
+  const statsPane = $id('statsPane');
+  const profilePane = $id('profilePane');
+  // tabs styling
+  document.querySelectorAll('.mini-tabs .tab').forEach(btn=> btn.classList.toggle('active', btn.dataset.show === tab));
+
+  if(tab === 'ledger'){
+    ledgerElements.forEach(el=> el && (el.style.display = 'block'));
+    if(statsPane) statsPane.style.display = 'none';
+    if(profilePane) profilePane.style.display = 'none';
+  } else if(tab === 'stats'){
+    ledgerElements.forEach(el=> el && (el.style.display = 'none'));
+    if(statsPane) statsPane.style.display = 'block';
+    if(profilePane) profilePane.style.display = 'none';
+    renderChart();
+  } else if(tab === 'profile'){
+    ledgerElements.forEach(el=> el && (el.style.display = 'none'));
+    if(statsPane) statsPane.style.display = 'none';
+    if(profilePane) profilePane.style.display = 'block';
+    renderProfile();
+  }
+}
+
+// ====== 事件绑定（在 DOMContentLoaded 中进行） ======
 document.addEventListener('DOMContentLoaded', ()=>{
-  // bind buttons
-  $('#registerBtn').addEventListener('click', doRegister);
-  $('#loginBtn').addEventListener('click', doLogin);
-  $('#logoutBtn').addEventListener('click', doLogout);
-  $('#exportBtn').addEventListener('click', exportData);
-  $('#importBtn').addEventListener('click', ()=> $('#importFile').click());
-  $('#importFile').addEventListener('change', (e)=> { if(e.target.files[0]) importFromFile(e.target.files[0]); });
-  $('#copySyncBtn').addEventListener('click', copySyncCode);
-  $('#pasteSyncBtn').addEventListener('click', pasteSyncCodeAndImport);
-  $('#syncQuickBtn').addEventListener('click', ()=> {
-    if(!currentUser){ showToast('请先登录'); return; }
-    exportData();
+  // bind core buttons
+  const rBtn = $id('registerBtn'); if(rBtn) rBtn.addEventListener('click', doRegister);
+  const lBtn = $id('loginBtn'); if(lBtn) lBtn.addEventListener('click', doLogin);
+  const loBtn = $id('logoutBtn'); if(loBtn) loBtn.addEventListener('click', doLogout);
+  const exportBtn = $id('exportBtn'); if(exportBtn) exportBtn.addEventListener('click', exportData);
+  const syncBtn = $id('syncBtn'); if(syncBtn) syncBtn.addEventListener('click', ()=>{ if(!currentUser){ alert('请先登录'); return; } exportData(); });
+  // import file (global)
+  const importFile = $id('importFile'); if(importFile) importFile.addEventListener('change', (e)=> { if(e.target.files && e.target.files[0]) importDataFromFile(e.target.files[0]); });
+
+  // ledger form
+  const form = $id('recordForm'); if(form) form.addEventListener('submit', addRecordFromForm);
+
+  // Tabs
+  document.querySelectorAll('.mini-tabs .tab').forEach(btn=>{
+    btn.addEventListener('click', ()=> switchTo(btn.dataset.show) );
   });
 
-  // form submit
-  $('#recordForm').addEventListener('submit', (e)=> {
-    e.preventDefault();
-    if(!currentUser){ showToast('请先登录'); return; }
-    const r = {
-      date: $('#date').value || new Date().toISOString().slice(0,10),
-      amount: Number($('#amount').value) || 0,
-      category: $('#category').value || '其他',
-      note: $('#note').value || ''
-    };
-    records.push(r);
-    users[currentUser].records = records;
-    saveLocal();
-    renderTable();
-    updateCharts();
-    updateSummary();
-    $('#recordForm').reset();
-    showToast('已添加记录');
+  // profile buttons
+  const copyBtn = $id('copySyncBtn'); if(copyBtn) copyBtn.addEventListener('click', copySyncCodeForCurrent);
+  const pasteBtn = $id('pasteSyncBtn'); if(pasteBtn) pasteBtn.addEventListener('click', pasteSyncCodeAndImport);
+  const exportUserBtn = $id('exportUserBtn'); if(exportUserBtn) exportUserBtn.addEventListener('click', ()=>{
+    if(!currentUser){ alert('请先登录'); return; }
+    // export only current user
+    const payload = { users: { [currentUser]: users[currentUser] }, currentUser, exportedAt:new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `ledger_${currentUser}.json`; a.click(); URL.revokeObjectURL(a.href); alert('已生成当前账户 JSON');
   });
+  const importUserBtn = $id('importUserBtn'); if(importUserBtn) importUserBtn.addEventListener('click', ()=> $id('importUserFile').click());
+  const importUserFile = $id('importUserFile'); if(importUserFile) importUserFile.addEventListener('change', (e)=> { if(e.target.files && e.target.files[0]) importDataFromFile(e.target.files[0]); });
 
-  // delete account button
-  $('#deleteAccountBtn').addEventListener('click', ()=>{
-    if(!currentUser){ showToast('请先登录'); return; }
-    if(!confirm('确定要删除当前账户？此操作不可恢复。')) return;
+  const delAccBtn = $id('deleteAccountBtn'); if(delAccBtn) delAccBtn.addEventListener('click', ()=>{
+    if(!currentUser){ alert('请先登录'); return; }
+    if(!confirm('确定删除当前账户？此操作不可恢复')) return;
     delete users[currentUser];
     saveLocal();
     doLogout();
-    showToast('账户已删除');
+    alert('账户已删除');
   });
 
-  // init charts placeholders
-  const expenseCtx = document.getElementById('expenseChart').getContext('2d');
-  expenseChart = new Chart(expenseCtx, { type:'pie', data:{labels:[], datasets:[{data:[]}] } });
-  const trendCtx = document.getElementById('trendChart').getContext('2d');
-  trendChart = new Chart(trendCtx, { type:'line', data:{labels:[], datasets:[] } });
+  // If a single user exists, prefill username
+  const names = Object.keys(users || {});
+  if(names.length === 1) { try{ $id('username').value = names[0]; }catch(e){} }
 
-  // If there's only one user in local storage, optionally prefill login field
-  const localUsernames = Object.keys(users);
-  if(localUsernames.length === 1){ $('#username').value = localUsernames[0]; }
+  // initial tab
+  switchTo('ledger');
 });
 
-// ======= beforeunload auto-save =======
-window.addEventListener('beforeunload', ()=>{
+// ====== beforeunload 保存 ======
+window.addEventListener('beforeunload', ()=> {
   if(currentUser) users[currentUser].records = records;
   saveLocal();
 });
