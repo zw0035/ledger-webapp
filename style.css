@@ -1,4 +1,4 @@
-/* style.css - 升级版苹果风格 */
+/* style.css - 改进版苹果风格 */
 
 /* ====== 基础字体和背景 ====== */
 body {
@@ -15,7 +15,7 @@ body {
 }
 
 /* ====== 容器 ====== */
-#login, #app {
+.card {
   width: 100%;
   max-width: 650px;
   background: #ffffff;
@@ -204,8 +204,17 @@ canvas#chart {
 }
 
 /* Tab 面板动画 */
-.tabPane { animation: fadeIn 0.28s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.tab-content {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.tab-content.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
 
 .muted{ color:#6b7280; font-size:13px; }
 .controls-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
@@ -256,5 +265,3 @@ body.mobile .mobile-view { display:block; }
   border-radius:14px;
   font-size:13px;
 }
-
-
