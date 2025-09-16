@@ -1,38 +1,38 @@
-/* style.css - 改进版苹果风格 */
+/* style.css - 专业记账应用风格 */
 
 /* ====== 基础字体和背景 ====== */
 body {
-  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background-color: #f5f5f7;
-  margin: 0;
-  padding: 30px 15px;
-  color: #1d1d1f;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: #f5f5f7;
+    margin: 0;
+    padding: 30px 15px;
+    color: #1d1d1f;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 /* ====== 容器 ====== */
 .card {
-  width: 100%;
-  max-width: 650px;
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-  padding: 40px 50px;
-  box-sizing: border-box;
-  position: relative;
+    width: 100%;
+    max-width: 650px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    padding: 40px 50px;
+    box-sizing: border-box;
+    position: relative;
 }
 
 /* ====== 标题 ====== */
 h2 {
-  font-weight: 700;
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: #111;
-  letter-spacing: 0.02em;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 30px;
+    color: #111;
+    letter-spacing: 0.02em;
 }
 
 /* ====== 输入框 ====== */
@@ -40,180 +40,232 @@ input[type="text"],
 input[type="password"],
 input[type="date"],
 input[type="number"] {
-  width: 100%;
-  padding: 14px 18px;
-  margin-bottom: 25px;
-  border: 1.5px solid #d1d1d6;
-  border-radius: 12px;
-  font-size: 17px;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  outline-offset: 2px;
-  outline-color: transparent;
-  box-sizing: border-box;
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 25px;
+    border: 1.5px solid #d1d1d6;
+    border-radius: 12px;
+    font-size: 17px;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    outline-offset: 2px;
+    outline-color: transparent;
+    box-sizing: border-box;
 }
 
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="date"]:focus,
 input[type="number"]:focus {
-  border-color: #0071e3;
-  outline-color: #0071e3;
-  box-shadow: 0 0 8px rgba(0, 113, 227, 0.4);
+    border-color: #0071e3;
+    outline-color: #0071e3;
+    box-shadow: 0 0 8px rgba(0, 113, 227, 0.4);
 }
 
 /* ====== 按钮 ====== */
 button {
-  background: linear-gradient(135deg, #0071e3, #004bb5);
-  border: none;
-  color: #fff;
-  padding: 14px 32px;
-  border-radius: 22px;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.25s ease;
-  box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
-  flex-shrink: 0;
-  min-width: 110px;
+    background: linear-gradient(135deg, #0071e3, #004bb5);
+    border: none;
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 22px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
+    flex-shrink: 0;
+    min-width: 110px;
+    position: relative;
+}
+
+button span {
+    transition: opacity 0.2s ease;
 }
 
 button:hover {
-  background: linear-gradient(135deg, #005bb5, #003f7a);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 91, 181, 0.5);
+    background: linear-gradient(135deg, #005bb5, #003f7a);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 91, 181, 0.5);
 }
 
 button:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
 }
 
-button:disabled {
-  background: #a0a0a0;
-  cursor: not-allowed;
-  box-shadow: none;
+/* 加载状态 */
+button.loading {
+    cursor: not-allowed;
+    background: #a0a0a0;
+    box-shadow: none;
+}
+button.loading span {
+    opacity: 0;
+}
+button.loading::before {
+    content: "加载中...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 17px;
 }
 
 /* 登出按钮特化 */
 #logoutBtn {
-  background: #ff3b30;
-  box-shadow: 0 4px 10px rgba(255, 59, 48, 0.35);
-  margin-left: auto;
+    background: #ff3b30;
+    box-shadow: 0 4px 10px rgba(255, 59, 48, 0.35);
+    margin-left: auto;
 }
 
 #logoutBtn:hover {
-  background: #c1271a;
-  box-shadow: 0 8px 20px rgba(193, 39, 26, 0.5);
+    background: #c1271a;
+    box-shadow: 0 8px 20px rgba(193, 39, 26, 0.5);
 }
 
 /* ====== 表格 ====== */
 table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;
-  margin-top: 30px;
-  font-size: 16px;
-  background: #fff;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 30px;
+    font-size: 16px;
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
 thead tr {
-  background-color: #f2f2f7;
-  border-bottom: none;
+    background-color: #f2f2f7;
+    border-bottom: none;
 }
 
 th, td {
-  padding: 14px 20px;
-  text-align: left;
-  vertical-align: middle;
+    padding: 14px 20px;
+    text-align: left;
+    vertical-align: middle;
 }
 
 th {
-  color: #6e6e73;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 13px;
-  user-select: none;
+    color: #6e6e73;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 13px;
+    user-select: none;
+    cursor: default;
 }
 
+.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 28px;
+}
+
+.sortable::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #a0a0a0;
+    opacity: 0.4;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sortable.asc::after {
+    opacity: 1;
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.sortable.desc::after {
+    opacity: 1;
+    transform: translateY(-50%) rotate(0deg);
+}
+
+
 tbody tr {
-  background: #ffffff;
-  transition: background-color 0.3s ease;
-  border-radius: 15px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.04);
-  cursor: default;
+    background: #ffffff;
+    transition: background-color 0.3s ease;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.04);
+    cursor: default;
 }
 
 tbody tr:hover {
-  background-color: #f0f5ff;
+    background-color: #f0f5ff;
 }
 
 /* 删除按钮 */
 .deleteBtn {
-  background-color: #ff3b30;
-  border-radius: 16px;
-  padding: 8px 16px;
-  font-weight: 700;
-  font-size: 14px;
-  color: white;
-  box-shadow: 0 3px 6px rgba(255, 59, 48, 0.4);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  border: none;
-  cursor: pointer;
+    background-color: #ff3b30;
+    border-radius: 16px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    box-shadow: 0 3px 6px rgba(255, 59, 48, 0.4);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    cursor: pointer;
 }
 
 .deleteBtn:hover {
-  background-color: #c1271a;
-  box-shadow: 0 6px 12px rgba(193, 39, 26, 0.5);
+    background-color: #c1271a;
+    box-shadow: 0 6px 12px rgba(193, 39, 26, 0.5);
 }
 
 /* ====== 提示信息 ====== */
-#loginMsg {
-  color: #ff3b30;
-  font-weight: 700;
-  min-height: 24px;
-  margin-top: 12px;
-  letter-spacing: 0.02em;
-  font-size: 15px;
+.message-box {
+    font-weight: 700;
+    min-height: 24px;
+    margin-top: 12px;
+    letter-spacing: 0.02em;
+    font-size: 15px;
 }
+#loginMsg { color: #ff3b30; }
+.form-tip { color: #ff3b30; }
 
 /* ====== canvas 图表 ====== */
 canvas#chart {
-  margin-top: 35px;
-  max-width: 100%;
-  height: 320px !important;
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  background: #fff;
+    margin-top: 35px;
+    max-width: 100%;
+    height: 320px !important;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    background: #fff;
 }
 
 /* ====== Tab / 小组件 ====== */
 .mini-tabs { display:flex; gap:8px; margin-bottom:12px; }
 .mini-tabs .tab {
-  background:#eef2ff; color:#08306b; border-radius:12px; padding:8px 12px; border:none; font-weight:700; cursor:pointer;
-  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    background:#eef2ff; color:#08306b; border-radius:12px; padding:8px 12px; border:none; font-weight:700; cursor:pointer;
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 }
 .mini-tabs .tab.active {
-  background: linear-gradient(135deg,#0071e3,#004bb5);
-  color:#fff;
-  box-shadow: 0 6px 16px rgba(0,113,227,0.18);
+    background: linear-gradient(135deg,#0071e3,#004bb5);
+    color:#fff;
+    box-shadow: 0 6px 16px rgba(0,113,227,0.18);
 }
 
 /* Tab 面板动画 */
 .tab-content {
-  display: none;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.28s ease, transform 0.28s ease;
+    display: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.28s ease, transform 0.28s ease;
 }
 .tab-content.active {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .muted{ color:#6b7280; font-size:13px; }
@@ -221,47 +273,16 @@ canvas#chart {
 
 /* ====== 气泡提示 ====== */
 .tipBubble {
-  position:absolute;
-  background: rgba(0,0,0,0.85);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  pointer-events:none;
-  opacity:0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index:9999;
-  white-space: nowrap;
-}
-
-/* 新增：电脑端 vs 手机端显示控制 */
-body.desktop .desktop-view { display:block; }
-body.desktop .mobile-view { display:none; }
-body.mobile .desktop-view { display:none; }
-body.mobile .mobile-view { display:block; }
-
-/* 手机端卡片样式 */
-.mobile-card {
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
-  margin-bottom:16px;
-  padding:18px 20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.mobile-card:hover {
-  transform: translateY(-2px);
-  box-shadow:0 8px 20px rgba(0,0,0,0.12);
-}
-.mobile-card .row {
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:6px;
-}
-.mobile-card .deleteBtn {
-  background:#ff3b30;
-  padding:6px 14px;
-  border-radius:14px;
-  font-size:13px;
+    position:absolute;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events:none;
+    opacity:0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index:9999;
+    white-space: nowrap;
 }
