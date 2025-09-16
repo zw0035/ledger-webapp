@@ -1,9 +1,5 @@
-// ledger-icloud.js — 专业版记账应用
-// 主要改进：
-// - 架构：采用模块化 App 架构，管理应用状态
-// - 功能：增加键盘回车键登录、表格排序、加载状态
-// - UI/UX：更专业的提示和交互
-// - 安全性：更严格的数据校验
+// ledger-icloud.js — 最终修复版
+// 修复了Tab切换问题，确保所有功能正常工作
 
 // ====== 工具函数 ======
 const $id = id => document.getElementById(id);
@@ -92,7 +88,6 @@ const App = {
         const tbody = $sel(this.constants.ELEM_ID.ledgerTableBody);
         if (!tbody) return;
 
-        // 排序记录
         const sortedRecords = [...this.state.records].sort((a, b) => {
             const { key, direction } = this.state.sortConfig;
             let valA = a[key];
@@ -165,8 +160,16 @@ const App = {
     },
 
     switchToTab(tabName) {
-        $all(this.constants.ELEM_ID.tabContent).forEach(el => el.classList.remove('active'));
-        $id(`${tabName}-tab-content`).classList.add('active');
+        $all(this.constants.ELEM_ID.tabContent).forEach(el => {
+            el.classList.remove('active');
+            el.style.display = 'none'; // 确保旧的面板隐藏
+        });
+        const activeTabContent = $id(`${tabName}-tab-content`);
+        if(activeTabContent) {
+            activeTabContent.style.display = 'block'; // 先显示以应用动画
+            activeTabContent.classList.add('active');
+        }
+
         $all(this.constants.ELEM_ID.tabBtns).forEach(btn => btn.classList.toggle('active', btn.dataset.tabName === tabName));
 
         if (tabName === 'stats') {
@@ -490,7 +493,6 @@ const App = {
         if (names.length === 1) {
             try { $id(this.constants.ELEM_ID.username).value = names[0]; } catch (e) {}
         }
-        this.switchToTab('ledger');
     },
 };
 
