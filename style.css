@@ -1,4 +1,4 @@
-/* style.css - Google Material Design 风格（响应式） */
+/* style.css - Google Material Design 风格 */
 
 /* ====== 基础变量和字体 ====== */
 :root {
@@ -304,6 +304,9 @@ tbody tr:hover {
 .delete-btn .material-icons {
     font-size: 20px;
 }
+.mobile-only {
+    display: none;
+}
 
 /* ====== 提示和消息 ====== */
 .message-box {
@@ -356,53 +359,4 @@ tbody tr:hover {
     background-color: var(--color-card-bg);
     border-radius: 8px;
     box-shadow: var(--shadow-sm);
-}
-
-/* ====== 手机端响应式布局 ====== */
-@media (max-width: 600px) {
-    body {
-        padding: 16px;
-    }
-    .card-pane {
-        padding: 24px 16px;
-    }
-    .card-title {
-        font-size: 20px;
-    }
-    .section-title {
-        font-size: 18px;
-    }
-
-    .tab-item .tab-text {
-        display: none;
-    }
-
-    .bottom-actions {
-        flex-direction: column;
-        gap: 8px;
-        align-items: center;
-    }
-    .btn.btn-text {
-        width: 100%;
-        text-align: center;
-    }
-    .file-input {
-        width: 100%;
-    }
-
-    /* 隐藏表格部分列 */
-    .desktop-only {
-        display: none;
-    }
-    
-    /* 手机端表格按钮优化 */
-    .delete-btn {
-        font-size: 0; /* 隐藏文字 */
-        padding: 4px;
-    }
-    .delete-btn::before {
-        content: "删除";
-        font-size: 14px;
-        color: var(--color-danger);
-    }
 }
