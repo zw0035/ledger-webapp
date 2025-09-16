@@ -31,37 +31,69 @@ async function hashPassword(pwd){
 
 function saveLocal(){ try{ localStorage.setItem('ledger_users', JSON.stringify(users)); }catch(e){ console.error('保存本地失败', e); } }
 
-// ====== 渲染表格 ======
-function renderTable(){
-  const tbody = document.querySelector('#ledgerTable tbody');
-  tbody.innerHTML = '';
-  records.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.date || ''}</td>
-      <td>${Number(r.amount || 0).toFixed(2)}</td>
-      <td>${r.category || ''}</td>
-      <td>${r.note || ''}</td>
-      <td><button class="deleteBtn" data-index="${i}">删除</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
+// === 渲染表格 ===
+function renderTable() {
+    const tbody = document.querySelector('#ledgerTable tbody');
+    tbody.innerHTML = '';
 
-  // 绑定删除（事件委托也可）
-  tbody.querySelectorAll('.deleteBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const idx = Number(btn.dataset.index);
-      if (Number.isFinite(idx)) {
-        records.splice(idx,1);
-        users[currentUser].records = records;
-        saveLocal();
-        renderTable();
-        renderChart();
-        renderProfile();
-      }
+    records.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${r.date}</td>
+            <td>${r.amount}</td>
+            <td>${r.category}</td>
+            <td>${r.note}</td>
+            <td><button class="deleteBtn" data-index="${i}">删除</button></td>
+        `;
+        tbody.appendChild(tr);
     });
-  });
+
+    // 删除按钮事件（淡入提示框）
+    document.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const i = parseInt(btn.dataset.index);
+
+            // 创建淡入提示框
+            if (!btn.dataset.confirmed) {
+                const confirmDiv = document.createElement('div');
+                confirmDiv.innerText = '再次点击删除以确认';
+                confirmDiv.style.position = 'absolute';
+                confirmDiv.style.backgroundColor = '#333';
+                confirmDiv.style.color = '#fff';
+                confirmDiv.style.padding = '6px 12px';
+                confirmDiv.style.borderRadius = '8px';
+                confirmDiv.style.fontSize = '14px';
+                confirmDiv.style.top = btn.getBoundingClientRect().top + window.scrollY - 35 + 'px';
+                confirmDiv.style.left = btn.getBoundingClientRect().left + 'px';
+                confirmDiv.style.opacity = '0';
+                confirmDiv.style.transition = 'opacity 0.3s';
+                confirmDiv.classList.add('deleteConfirmTip');
+
+                document.body.appendChild(confirmDiv);
+                setTimeout(() => confirmDiv.style.opacity = '1', 10);
+
+                btn.dataset.confirmed = 'true';
+
+                // 5 秒后自动移除提示框
+                setTimeout(() => {
+                    delete btn.dataset.confirmed;
+                    if (confirmDiv.parentNode) confirmDiv.parentNode.removeChild(confirmDiv);
+                }, 5000);
+
+                return;
+            }
+
+            // 第二次点击确认后删除
+            records.splice(i, 1);
+            users[currentUser].records = records;
+            saveLocal();
+            renderTable();
+            renderChart();
+        });
+    });
 }
+
+
 
 // ====== 统计图表 ======
 function renderChart(){
