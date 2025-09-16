@@ -108,15 +108,24 @@ const App = {
 
         tbody.innerHTML = sortedRecords
             .map(
-                (r, i) => `
-            <tr>
-                <td>${r.date}</td>
-                <td>${r.amount}</td>
-                <td class="desktop-only">${r.category}</td>
-                <td class="desktop-only">${r.note}</td>
-                <td><button class="delete-btn" data-index="${this.state.records.indexOf(r)}"><span class="material-icons">delete</span></button></td>
-            </tr>
-        `
+                (r, i) => {
+                    // 判断是否为手机页面以调整按钮和表格内容
+                    const isMobile = window.location.pathname.endsWith('index_mobile.html');
+                    const categoryCell = isMobile ? `<td class="mobile-only">${r.category}</td>` : `<td>${r.category}</td>`;
+                    const noteCell = isMobile ? '' : `<td>${r.note}</td>`;
+                    const deleteBtnContent = isMobile ? `<span class="material-icons">delete</span>` : '删除';
+                    const deleteBtnClass = 'delete-btn';
+    
+                    return `
+                        <tr>
+                            <td>${r.date}</td>
+                            <td>${r.amount}</td>
+                            ${categoryCell}
+                            ${noteCell}
+                            <td><button class="${deleteBtnClass}" data-index="${this.state.records.indexOf(r)}">${deleteBtnContent}</button></td>
+                        </tr>
+                    `;
+                }
             )
             .join("");
     },
@@ -547,6 +556,7 @@ const App = {
                 $id(this.constants.ELEM_ID.username).value = names[0];
             } catch (e) {}
         }
+        this.renderTable();
     },
 };
 
