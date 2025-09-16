@@ -1,7 +1,6 @@
-/* 原有样式（你发的完整苹果风格保留） */
-/* style.css - 完整苹果风格改进版 */
+/* style.css - 升级版苹果风格 */
 
-/* 基础字体和背景 */
+/* ====== 基础字体和背景 ====== */
 body {
   font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -15,7 +14,7 @@ body {
   align-items: flex-start;
 }
 
-/* 容器统一風格 */
+/* ====== 容器 ====== */
 #login, #app {
   width: 100%;
   max-width: 650px;
@@ -24,9 +23,10 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
   padding: 40px 50px;
   box-sizing: border-box;
+  position: relative;
 }
 
-/* 标题 */
+/* ====== 标题 ====== */
 h2 {
   font-weight: 700;
   font-size: 28px;
@@ -35,7 +35,7 @@ h2 {
   letter-spacing: 0.02em;
 }
 
-/* 输入框 */
+/* ====== 输入框 ====== */
 input[type="text"],
 input[type="password"],
 input[type="date"],
@@ -46,7 +46,7 @@ input[type="number"] {
   border: 1.5px solid #d1d1d6;
   border-radius: 12px;
   font-size: 17px;
-  transition: border-color 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
   outline-offset: 2px;
   outline-color: transparent;
   box-sizing: border-box;
@@ -61,18 +61,7 @@ input[type="number"]:focus {
   box-shadow: 0 0 8px rgba(0, 113, 227, 0.4);
 }
 
-/* 按钮组容器 */
-#login > div,
-#app > div:nth-child(5),
-.controls-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
-/* 按钮基础样式 */
+/* ====== 按钮 ====== */
 button {
   background: linear-gradient(135deg, #0071e3, #004bb5);
   border: none;
@@ -83,7 +72,7 @@ button {
   font-weight: 700;
   cursor: pointer;
   user-select: none;
-  transition: background 0.3s ease, transform 0.15s ease;
+  transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.25s ease;
   box-shadow: 0 4px 10px rgba(0, 113, 227, 0.35);
   flex-shrink: 0;
   min-width: 110px;
@@ -106,7 +95,7 @@ button:disabled {
   box-shadow: none;
 }
 
-/* 登出按钮风格 */
+/* 登出按钮特化 */
 #logoutBtn {
   background: #ff3b30;
   box-shadow: 0 4px 10px rgba(255, 59, 48, 0.35);
@@ -118,7 +107,7 @@ button:disabled {
   box-shadow: 0 8px 20px rgba(193, 39, 26, 0.5);
 }
 
-/* 表格样式 */
+/* ====== 表格 ====== */
 table {
   width: 100%;
   border-collapse: separate;
@@ -163,11 +152,6 @@ tbody tr:hover {
   background-color: #f0f5ff;
 }
 
-td {
-  border-bottom: none;
-  color: #333;
-}
-
 /* 删除按钮 */
 .deleteBtn {
   background-color: #ff3b30;
@@ -180,7 +164,6 @@ td {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   border: none;
   cursor: pointer;
-  user-select: none;
 }
 
 .deleteBtn:hover {
@@ -188,7 +171,7 @@ td {
   box-shadow: 0 6px 12px rgba(193, 39, 26, 0.5);
 }
 
-/* 错误提示 */
+/* ====== 提示信息 ====== */
 #loginMsg {
   color: #ff3b30;
   font-weight: 700;
@@ -198,7 +181,7 @@ td {
   font-size: 15px;
 }
 
-/* canvas 图表 */
+/* ====== canvas 图表 ====== */
 canvas#chart {
   margin-top: 35px;
   max-width: 100%;
@@ -208,36 +191,45 @@ canvas#chart {
   background: #fff;
 }
 
-/* 响应式适配 */
-@media (max-width: 700px) {
-  #login, #app {
-    padding: 30px 25px;
-  }
-
-  button {
-    width: 100%;
-    min-width: unset !important;
-  }
-
-  #logoutBtn {
-    margin-left: 0;
-    margin-top: 10px;
-  }
-
-  #login > div,
-  #app > div:nth-child(5) {
-    flex-direction: column;
-    gap: 12px;
-  }
-}
-
-/* ========== 新增：Tab / 小组件 风格（很小的补充，不影响原风格） ========== */
+/* ====== Tab / 小组件 ====== */
 .mini-tabs { display:flex; gap:8px; margin-bottom:12px; }
 .mini-tabs .tab {
   background:#eef2ff; color:#08306b; border-radius:12px; padding:8px 12px; border:none; font-weight:700; cursor:pointer;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 }
-.mini-tabs .tab.active { background: linear-gradient(135deg,#0071e3,#004bb5); color:#fff; box-shadow: 0 6px 16px rgba(0,113,227,0.18); }
+.mini-tabs .tab.active {
+  background: linear-gradient(135deg,#0071e3,#004bb5);
+  color:#fff;
+  box-shadow: 0 6px 16px rgba(0,113,227,0.18);
+}
+
+/* Tab 面板动画 */
 .tabPane { animation: fadeIn 0.28s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:translateY(0) } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
 .muted{ color:#6b7280; font-size:13px; }
 .controls-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+
+/* ====== 气泡提示 ====== */
+.tipBubble {
+  position:absolute;
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index:9999;
+  white-space: nowrap;
+}
+
+/* ====== 响应式 ====== */
+@media (max-width: 700px) {
+  #login, #app { padding: 30px 25px; }
+  button { width: 100%; min-width: unset !important; }
+  #logoutBtn { margin-left: 0; margin-top: 10px; }
+  #login > div, #app > div:nth-child(5), .controls-row { flex-direction: column; gap: 12px; }
+}
