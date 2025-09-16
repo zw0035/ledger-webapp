@@ -226,10 +226,35 @@ canvas#chart {
   white-space: nowrap;
 }
 
-/* ====== 响应式 ====== */
-@media (max-width: 700px) {
-  #login, #app { padding: 30px 25px; }
-  button { width: 100%; min-width: unset !important; }
-  #logoutBtn { margin-left: 0; margin-top: 10px; }
-  #login > div, #app > div:nth-child(5), .controls-row { flex-direction: column; gap: 12px; }
+/* 新增：电脑端 vs 手机端显示控制 */
+body.desktop .desktop-view { display:block; }
+body.desktop .mobile-view { display:none; }
+body.mobile .desktop-view { display:none; }
+body.mobile .mobile-view { display:block; }
+
+/* 手机端卡片样式 */
+.mobile-card {
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+  margin-bottom:16px;
+  padding:18px 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.mobile-card:hover {
+  transform: translateY(-2px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+}
+.mobile-card .row {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+.mobile-card .deleteBtn {
+  background:#ff3b30;
+  padding:6px 14px;
+  border-radius:14px;
+  font-size:13px;
+}
+
+
